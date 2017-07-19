@@ -1,14 +1,14 @@
 #!/bin/bash
 
 function help {
-    clear
-    echo "---- WifiCrack HELP ----
+clear
+echo "----------------------- WifiCrack HELP -----------------------
 
-1 --> Sets the selected WLAN interface in monitor mode, changes its' MAC address to 11:22:33:44:55 and begins the cracking process.
+1 --> Sets the selected WLAN interface in monitor mode and begins the cracking process.
 2 --> Unsets monitor mode for selected WLAN interface.
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
-s --> Shows the current MAC address of the selected WLAN interface.
+s --> Shows technical info of the current WLAN interface.
 q --> Exits the script.
 "
 }
@@ -100,11 +100,12 @@ echo "b) Go back"
 while read -n1 MODE
 do
     case $MODE in
-        1 ) 
+        1 )
             MODE=WEP
-            if [[ -n $STATE ]]; then
-                unset_mon >> /dev/null #Unseting monitor mode before running nmcli.
+            if [[ -n $STATE ]] && [[ $IFACENUM -eq 1 ]]; then
+                echo
                 echo "Please wait ..."
+                unset_mon >> /dev/null #Unseting monitor mode before running nmcli.
                 sleep 5
             fi
             list_APs
@@ -112,11 +113,12 @@ do
             crack_wep
             break
             ;;
-        2 ) 
+        2 )
             MODE=WPA
-            if [[ -n $STATE ]]; then
-                unset_mon >> /dev/null #Unseting monitor mode before running nmcli.
+            if [[ -n $STATE ]] && [[ $IFACENUM -eq 1 ]]; then
+                echo
                 echo "Please wait ..."
+                unset_mon >> /dev/null #Unseting monitor mode before running nmcli.
                 sleep 5
             fi
             list_APs
@@ -130,7 +132,7 @@ do
             ;;
         * )
             echo -ne "\nInvalid character '$MODE' entered. $SELECT"
-    esac   
+    esac
 done
 }
 function list_APs {
@@ -177,9 +179,10 @@ function crack_wep {
 IFACE=$(ls /sys/class/net | grep $IFACE)
 ESSID=$(tr -d ' ' <<< $ESSID)
 AIRODUMP="airodump-ng --bssid "$BSSID" -c "$CHAN" -w "$ESSID" "$IFACE""
-    
+
 env -u SESSION_MANAGER xterm -hold -e $AIRODUMP &
 COUNTER=3
+echo
 until [[ "$COUNTER" -lt 1 ]]; do
     echo "Attempting to Associate... $COUNTER"
     let COUNTER-=1
@@ -227,7 +230,6 @@ if [[ "$ANSWER" = y ]]; then
         COMMAND4="aircrack-ng $CAP"
         env -u SESSION_MANAGER xterm -hold -e $COMMAND4 &
 else
-    disown
     read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ?" ASR
     if [[ "$ASR" = y ]]; then
         rm -f $ESSID*.cap
@@ -235,14 +237,14 @@ else
         rm -f $ESSID*.csv
         rm -f replay*.cap
     fi
-    PID=$(ps aux | grep aireplay | grep -v grep | awk -F ' ' '{print $2}')
+    PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
+    kill $PID
+    PID=$(ps aux | grep airodump-ng | grep -v grep | awk -F ' ' '{print $2}')
     kill $PID
 fi
 }
-function show_mac {
-list_ifaces
-MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
-echo "$IFACE MAC : $MAC"
+function show_info {
+iw $IFACE info
 }
 function unset_mon {
 if [[ -z "$STATE" ]]; then
@@ -262,6 +264,7 @@ else
     airmon-ng stop $IFACE >> /dev/null
     echo "$IFACE is no longer in monitor mode."
     STATE=''
+    IFACE=$(sed 's/mon//g' <<< $IFACE)
 fi
 }
 function set_mon {
@@ -284,22 +287,24 @@ else
     echo
     echo "$IFACE already in monitor mode."
     NEWMAC=$(iw $IFACE info | grep addr | awk '{print $2}')
-    choose_mode
 fi
 }
 function menu {
 clear
+echo "----------------------- WiFiCrack v0.2_alpha -----------------------"
+echo
 echo "1) Start"
 echo "2) Stop"
 echo "h) View Help"
 echo "v) View APs"
-echo "s) Show WLAN interface MAC"
+echo "s) Show Info"
 echo "q) Abort!"
 echo
-PROMPT='Choose : '
+PROMPT="Choose : "
 echo -n "$PROMPT"
 }
 function list_ifaces {
+echo
 readarray -t IFACES < <(ls /sys/class/net | grep wl)
 echo "Select an interface (WLAN Card)"
 select CHOICE in "${IFACES[@]}"; do
@@ -310,13 +315,16 @@ read -r IFACE <<< "$CHOICE"
 echo "You picked : $IFACE"
 }
 function single_interface {
+STATE=$(ls /sys/class/net | grep mon)
+IFACE=$(ls /sys/class/net | grep wl)
+MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
 menu
 while read -n1 CHAR
 do
     case $CHAR in
         1 )
             choose_mode
-            break 
+            break
             ;;
         2 )
             unset_mon
@@ -327,14 +335,15 @@ do
             ;;
         h )
             echo
+            help
             read -p "Press Enter to go back" KEY
             single_interface
-            help
             break
             ;;
         v )
             if [[ -n "$STATE" ]]; then
                 unset_mon >> /dev/null
+                echo
                 echo "Please wait..."
                 sleep 5
             fi
@@ -346,8 +355,8 @@ do
             break
             ;;
         s )
-            echo
-            echo "$IFACE MAC : $MAC"
+            clear
+            show_info
             echo
             read -p "Press Enter to go back" KEY
             single_interface
@@ -370,17 +379,16 @@ function multiple_interfaces {
 if [[ -z "$IFACE" ]]; then
     exit 0
 else
+    STATE=$(echo $IFACE | grep mon)
     menu
-    while read -n1 CHAR 
+    while read -n1 CHAR
     do
         case $CHAR in
             1 )
-                STATE=$(echo $IFACE | grep mon)
                 choose_mode
                 break
                 ;;
             2 )
-                STATE=$(echo $IFACE | grep mon)
                 unset_mon
                 echo
                 read -p "Press Enter to go back" KEY
@@ -388,27 +396,30 @@ else
                 break
                 ;;
             h )
-                help
                 echo
+                help
                 read -p "Press Enter to go back" KEY
                 multiple_interfaces
                 break
                 ;;
             v )
+                clear
                 if [[ -n "$STATE" ]]; then
-                    unset_mon >> /dev/null
+                    echo
                     echo "Please wait..."
+                    unset_mon >> /dev/null
                     sleep 5
                 fi
                 clear
-                nmcli dev wifi list 
+                nmcli dev wifi list
                 echo
                 read -p "Press Enter to go back" KEY
                 multiple_interfaces
                 break
                 ;;
             s )
-                show_mac
+                clear
+                show_info
                 echo
                 read -p "Press Enter to go back" KEY
                 multiple_interfaces
@@ -436,15 +447,11 @@ fi
 }
 function check_wlan {
 IFACENUM=$(ls /sys/class/net/ | grep wl |  wc -l)
-
 if [[ "$IFACENUM" -gt 1 ]]; then
     echo "You have multiple wlan interfaces."
     list_ifaces
     multiple_interfaces
 elif [[ "$IFACENUM" -eq 1 ]]; then
-    STATE=$(ls /sys/class/net | grep mon)
-    IFACE=$(ls /sys/class/net | grep wl)
-    MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
     single_interface
 elif [[ "$IFACENUM" -eq 0 ]]; then
     echo "No WLAN interfaces found."
