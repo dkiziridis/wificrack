@@ -9,6 +9,7 @@ echo "----------------------- WifiCrack HELP -----------------------
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
 s --> Shows technical info of the current WLAN interface.
+t --> Test injection quality of the current WLAN interface. Without injection support some commands will not be able to run successfuly.
 q --> Exits the script.
 "
 }
@@ -87,6 +88,18 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
     fi
 else
     :
+fi
+}
+function test_injection {
+echo
+if [[ -n "$STATE" ]]; then
+    aireplay-ng -9 $IFACE
+    echo "If you get %0, that means injection is not supported by your wlan interface. Anything above %0 is relative to the quality of the injection and your distance to the nearest Access Point."
+    echo
+else
+    echo "Please wait..."
+    set_mon >> /dev/null
+    test_injection
 fi
 }
 function choose_mode {
@@ -201,9 +214,7 @@ if [[ -z "$SUCCESS" ]]; then
     echo "Unable to Associate, make sure your wlan interface supports injection."
     read -p "Test injection now ? [yn]" INJ
     if [[ "$INJ" = y ]]; then
-        clear
-        aireplay-ng -9 $IFACE
-        echo "If you get %0, that means injection is not supported by your wlan interface. Anything above %0 is relative to the quality of the injection and your distance to the nearest Access Point."
+        test_injection
     fi
     unset_mon >> /dev/null
     echo
@@ -282,6 +293,7 @@ if [[ -z "$STATE" ]]; then
     echo "Bringing $IFACE up..."
     ifconfig $IFACE up >> /dev/null
     NEWMAC=$(iw $IFACE info | grep addr | awk '{print $2}')
+    STATE=$(echo $IFACE | grep mon)
     echo "$IFACE is in monitor mode and it's MAC address is: $NEWMAC"
 else
     echo
@@ -291,13 +303,14 @@ fi
 }
 function menu {
 clear
-echo "----------------------- WiFiCrack v0.2_alpha -----------------------"
+echo "----------------------- WiFiCrack v0.3_beta -----------------------"
 echo
 echo "1) Start"
 echo "2) Stop"
 echo "h) View Help"
 echo "v) View APs"
 echo "s) Show Info"
+echo "t) Test Injection"
 echo "q) Abort!"
 echo
 PROMPT="Choose : "
@@ -358,6 +371,13 @@ do
             clear
             show_info
             echo
+            read -p "Press Enter to go back" KEY
+            single_interface
+            break
+            ;;
+        t )
+            clear
+            test_injection
             read -p "Press Enter to go back" KEY
             single_interface
             break
@@ -425,6 +445,13 @@ else
                 multiple_interfaces
                 break
                 ;;
+            t )
+                clear
+                test_injection
+                read -p "Press Enter to go back" KEY
+                single_interface
+                break
+                ;;  
             q )
                 echo
                 echo "Exiting..."
