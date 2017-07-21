@@ -5,10 +5,13 @@ clear
 echo "----------------------- WiFiCrack HELP -----------------------
 
 1 --> Sets the selected WLAN interface in monitor mode and begins the cracking process.
-2 --> Unsets monitor mode for selected WLAN interface.
+e --> Enables monitor mode for selected WLAN interface.
+d --> Disables monitor mode for selected WLAN interface.
+w --> Generate cell phone number wordlist.
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
 s --> Shows technical info of the current WLAN interface.
+c --> Change current interface (only shows if you have more than one interface)
 t --> Test injection quality of the current WLAN interface. Without injection support some commands will not be able to run successfully.
 q --> Exits the script.
 "
@@ -148,6 +151,7 @@ function test_injection {
 echo
 if [[ -n "$STATE" ]]; then
     echo "Testing injection for $IFACE"
+    sleep 5
     WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
     if [[ -n "$WORKS" ]]; then
         echo "WLAN interface ($IFACE) supports injection."
