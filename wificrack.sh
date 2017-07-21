@@ -358,6 +358,7 @@ function unset_mon {
 if [[ -z "$STATE" ]]; then
     echo
     echo "Monitor mode was not set on $IFACE."
+    sleep 2
 else
     echo
     echo "Disabling Monitor Mode for $IFACE..."
@@ -398,6 +399,7 @@ else
     echo
     echo "$IFACE already in monitor mode."
     NEWMAC=$(iw $IFACE info | grep addr | awk '{print $2}')
+    sleep 2
 fi
 }
 function go_back {
