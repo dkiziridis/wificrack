@@ -149,27 +149,96 @@ fi
 }
 function test_injection {
 echo
+TRY=y
 if [[ -n "$STATE" ]]; then
     echo "Testing injection for $IFACE"
-    sleep 5
-    WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
-    if [[ -n "$WORKS" ]]; then
-        echo "WLAN interface ($IFACE) supports injection."
-        echo
+    RANGE=$(aireplay-ng -9 $IFACE | grep "Found 0 APs")
+    if [[ -n "$RANGE" ]]; then
+        while [[ "$TRY" = y ]]; 
+        do
+            RANGE=$(aireplay-ng -9 $IFACE | grep "Found 0 APs")
+            WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+            if [[ -z "$RANGE" ]]; then
+                WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+                if [[ -n "$WORKS" ]]; then
+                    echo "WLAN interface ($IFACE) supports injection."
+                    echo
+                    if [[ "$FLAG" -eq 1 ]]; then
+                        echo "Please wait..."
+                        echo "Unseting monitor mode on $IFACE."
+                        unset_mon >> /dev/null
+                    fi
+                    unset WORKS
+                    unset RANGE
+                    unset TRY
+                    unset FLAG
+                    break
+                else
+                    echo "WLAN interface ($IFACE) does NOT support injection."
+                    echo
+                    if [[ "$FLAG" -eq 1 ]]; then
+                        echo "Please wait..."
+                        echo "Unseting monitor mode on $IFACE."
+                        unset_mon >> /dev/null
+                    fi
+                    unset WORKS
+                    unset RANGE
+                    unset TRY
+                    unset FLAG
+                    break
+                fi
+            else
+                echo "Found 0 APs, consider relocating your WLAN interface."
+                read -p "Try again ? [yn] " TRY
+                unset RANGE
+                echo "Please wait..."
+                if [[ "$FLAG" -eq 1 ]]; then
+                    echo "Please wait..."
+                    echo "Unseting monitor mode on $IFACE."
+                    unset_mon >> /dev/null
+                fi
+            fi
+        done
     else
-        echo "WLAN interface ($IFACE) does NOT support injection."
-        echo
+        WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+        if [[ -n "$WORKS" ]]; then
+            echo "WLAN interface ($IFACE) supports injection."
+            echo
+            if [[ "$FLAG" -eq 1 ]]; then
+                echo "Please wait..."
+                echo "Unseting monitor mode on $IFACE."
+                unset_mon >> /dev/null
+            fi
+            unset WORKS
+            unset RANGE
+            unset TRY
+            unset FLAG
+        else
+            echo "WLAN interface ($IFACE) does NOT support injection."
+            echo
+            if [[ "$FLAG" -eq 1 ]]; then
+                echo "Please wait..."
+                echo "Unseting monitor mode on $IFACE."
+                unset_mon >> /dev/null
+            fi
+            unset WORKS
+            unset RANGE
+            unset TRY
+            unset FLAG
+        fi
     fi
 else
     echo
     echo "Please wait..."
+    echo "Setting monitor mode on $IFACE."
     set_mon >> /dev/null
     FLAG=1
     test_injection
 fi
-if [[ "$FLAG" -eq 1 ]]; then
-    unset_mon >> /dev/null
-fi
+unset WORKS
+unset RANGE
+unset TRY
+unset FLAG
 }
 function choose_mode {
 echo
@@ -218,7 +287,7 @@ do
 done
 }
 function list_APs {
-readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list | grep $MODE)
+readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list | grep $MODE | sort -u -t: -k1,1 )
 if [[ -z "$LINES" ]]; then
     echo "No $MODE Networks found."
     echo
@@ -262,7 +331,11 @@ if [[ "$ANSWER" = y ]]; then
         read -p "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
         read -p "How many times ?" TIMES
         aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
-        read -p "Try again ? [yn] " ASN
+        read -p "Try again with same settings [yn] " ASN
+        while [[ "$ASN" = y ]]; do
+            aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
+            read -p "Try again with same settings [yn] " ASN
+        done
     done
 fi
 echo
@@ -273,6 +346,7 @@ echo
 read -p "Press Enter to go back" KEY
 PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
 kill $PID
+unset ASN
 unset PID
 unset ESSID
 unset AIRODUMP
@@ -493,7 +567,7 @@ if [[ "$IFACENUM" -eq 1 ]]; then
     echo "h) View Help"
     echo "v) View APs"
     echo "s) Show Info"
-    echo "t) Test Injection"
+    echo "t) Test Injection         r) Verbose Test"
     echo "q) Abort!"
     echo
     PROMPT="Choose : "
@@ -517,7 +591,7 @@ else
     echo "v) View APs"
     echo "s) Show Info"
     echo "c) Change Interface"
-    echo "t) Test Injection"
+    echo "t) Test Injection         r) Verbose Test"
     echo "q) Abort!"
     echo
     PROMPT="Choose : "
@@ -600,6 +674,23 @@ do
             single_interface
             break
             ;;
+        r ) 
+            clear
+            if [[ -z "$STATE" ]]; then
+                set_mon
+                FLG=1
+                aireplay-ng -9 $IFACE
+            else
+                aireplay-ng -9 $IFACE
+            fi
+            if [[ "$FLG" = 1 ]]; then
+                unset_mon
+            fi
+            unset FLG
+            read -p "Press Enter to go back" KEY
+            single_interface
+            break
+            ;;
         q )
             clear
             exit 0
@@ -669,6 +760,23 @@ do
         t )
             clear
             test_injection
+            read -p "Press Enter to go back" KEY
+            multiple_interfaces
+            break
+            ;;
+        r ) 
+            clear
+            if [[ -z "$STATE" ]]; then
+                set_mon
+                FLG=1
+                aireplay-ng -9 $IFACE
+            else
+                aireplay-ng -9 $IFACE
+            fi
+            if [[ "$FLG" = 1 ]]; then
+                unset_mon
+            fi
+            unset FLG
             read -p "Press Enter to go back" KEY
             multiple_interfaces
             break
