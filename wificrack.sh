@@ -101,12 +101,16 @@ if [[ -n "$STATE" ]]; then
     else
         echo "WLAN interface ($IFACE) does NOT support injection."
         echo
-    fi 
+    fi
 else
     echo
     echo "Please wait..."
     set_mon >> /dev/null
+    FLAG=1
     test_injection
+fi
+if [[ "$FLAG" -eq 1 ]]; then
+    unset_mon >> /dev/null
 fi
 }
 function choose_mode {
@@ -168,7 +172,7 @@ else
     echo "SSID  CHAN    BSSID   SECURITY    SIGNAL"
     select CHOICE in "${LINES[@]}"; do
         [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
-            break
+        break
     done
     read -r AP <<< "$CHOICE)"
     echo
@@ -177,7 +181,7 @@ else
     CHAN=$(echo $AP | awk -F ':' '{print $2}')
     ESSID=$(echo $AP | awk -F ':' '{print $1}')
     echo "AP Name: "$ESSID
-    echo "AP Chanel: "$CHAN
+    echo "AP Channel: "$CHAN
     echo "AP MAC: "$BSSID
 fi
 }
@@ -188,9 +192,7 @@ read -p "Press Enter to continue ?" KEY
 IFACE=$(ls /sys/class/net | grep $IFACE)
 ESSID=$(tr -d ' ' <<< $ESSID)
 AIRODUMP="airodump-ng --bssid "$BSSID" -c "$CHAN" -w "$ESSID" "$IFACE""
-
 env -u SESSION_MANAGER xterm -hold -e $AIRODUMP &
-
 echo "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
 You capture a 4-Way Handshake by forcing an already connected client to de-auth, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake."
 echo
@@ -289,8 +291,8 @@ if [[ "$ANSWER" = y ]]; then
         read -r CAP <<< "$CHOICE"
     fi
     echo $CAP
-    COMMAND4="aircrack-ng "$CAP""
-    env -u SESSION_MANAGER xterm -hold -e $COMMAND4 &
+    COMMAND="aircrack-ng "$CAP""
+    env -u SESSION_MANAGER xterm -hold -e $COMMAND &
     clear
     echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)..."
     echo
@@ -334,7 +336,23 @@ elif [[ "$ANSWER" = n ]]; then
 fi
 }
 function show_info {
-iw $IFACE info
+ADDR=$(iw $IFACE info | grep addr | awk -F ' ' '{print $2}')
+TYPE=$(iw $IFACE info | grep \t\y\p\e | awk -F ' ' '{print $2}')
+TXPOWER==$(iw $IFACE info | grep txpower | awk -F ' ' '{print $2}{print $3}' | xargs)
+NAME=$(iw $IFACE info | grep Interface | awk -F ' ' '{print $2}')
+CHANNEL=$(iw $IFACE info | grep channel | awk -F ' ' '{print $2}{print $3}{print $4}' | xargs | sed 's/,//g')
+echo "----------------------- WiFi Card Info -----------------------"
+echo
+echo "Name                          : $NAME"
+echo "MAC Addr                      : $ADDR"
+echo "Type                          : $TYPE"
+echo "Channel                       : $CHANNEL"
+echo "Transmit Power                : $TXPOWER"
+unset ADDR
+unset TYPE
+unset TXPOWER
+unset NAME
+unset CHANNEL
 }
 function unset_mon {
 if [[ -z "$STATE" ]]; then
@@ -390,22 +408,55 @@ function go_back {
     fi
 }
 function menu {
-clear
-echo "----------------------- WiFiCrack v0.4_beta -----------------------"
-echo
-echo "1) Start"
-echo "2) Stop"
-echo "h) View Help"
-echo "v) View APs"
-echo "s) Show Info"
-echo "t) Test Injection"
-echo "q) Abort!"
-echo
-PROMPT="Choose : "
-echo -n "$PROMPT"
+if [[ "$IFACENUM" -eq 1 ]]; then
+    clear
+    echo "----------------------- WiFiCrack v0.4_beta -----------------------"
+    if [[ -n $STATE ]]; then
+        MM=ON
+    else
+        MM=OFF
+    fi
+    echo "WLAN Interface : $IFACE"
+    echo "Monitor Mode   : $MM" 
+    echo
+    echo "1) Crack"
+    echo "e) Enable <M/M>"
+    echo "d) Disable <M/M>"
+    echo "h) View Help"
+    echo "v) View APs"
+    echo "s) Show Info"
+    echo "t) Test Injection"
+    echo "q) Abort!"
+    echo
+    PROMPT="Choose : "
+    echo -n "$PROMPT"
+else
+    clear
+    echo "----------------------- WiFiCrack v0.4_beta -----------------------"
+    if [[ -n $STATE ]]; then
+        MM=ON
+    else
+        MM=OFF
+    fi
+    echo "WLAN Interface : $IFACE"
+    echo "Monitor Mode   : $MM" 
+    echo
+    echo "1) Crack"
+    echo "e) Enable <M/M>"
+    echo "d) Disable <M/M>"
+    echo "h) View Help"
+    echo "v) View APs"
+    echo "s) Show Info"
+    echo "c) Change Interface"
+    echo "t) Test Injection"
+    echo "q) Abort!"
+    echo
+    PROMPT="Choose : "
+    echo -n "$PROMPT"
+fi
 }
 function list_ifaces {
-echo
+clear
 readarray -t IFACES < <(ls /sys/class/net | grep wl)
 echo "Select an interface (WLAN Card)"
 select CHOICE in "${IFACES[@]}"; do
@@ -427,10 +478,16 @@ do
             choose_mode
             break
             ;;
-        2 )
-            unset_mon
+        e )
+            set_mon
             echo
-            read -p "Press Enter to go back" KEY
+            clear
+            single_interface
+            break
+            ;; 
+        d )
+            unset_mon
+            clear
             single_interface
             break
             ;;
@@ -493,10 +550,16 @@ do
             choose_mode
             break
             ;;
-        2 )
-            unset_mon
+        e )
+            set_mon
             echo
-            read -p "Press Enter to go back" KEY
+            clear
+            multiple_interfaces
+            break
+            ;; 
+        d )
+            unset_mon
+            clear
             multiple_interfaces
             break
             ;;
@@ -534,6 +597,11 @@ do
             clear
             test_injection
             read -p "Press Enter to go back" KEY
+            multiple_interfaces
+            break
+            ;;
+        c )
+            list_ifaces
             multiple_interfaces
             break
             ;;
