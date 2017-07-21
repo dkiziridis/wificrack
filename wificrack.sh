@@ -9,7 +9,7 @@ echo "----------------------- WiFiCrack HELP -----------------------
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
 s --> Shows technical info of the current WLAN interface.
-t --> Test injection quality of the current WLAN interface. Without injection support some commands will not be able to run successfuly.
+t --> Test injection quality of the current WLAN interface. Without injection support some commands will not be able to run successfully.
 q --> Exits the script.
 "
 }
@@ -88,6 +88,56 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
     fi
 else
     :
+fi
+}
+function gen_wl {
+CRUNCH=$(command -v crunch)
+if [[ -z "$CRUNCH" ]]; then
+    echo
+    echo "Crunch is not installed. Install it and try again."
+    read -p "Press Enter to go back..." KEY
+    unset CRUNCH
+    go_back
+fi
+clear
+echo "------- Cell Phone number generator, using crunch. -------"
+echo
+read -p "Enter Phone Number digit length : " LENGTH
+read -p "Enter Cell Phone prefix : " PREFIX
+read -p "Enter number of recurring digits : " RECURRING
+TMP_1=$(echo ${#PREFIX})
+TMP_2=$(expr $LENGTH - $TMP_1 + 1)
+TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
+TMP_4=$(echo $TMP_3 | sed 's/%/X/g')
+SUFFIX=".lst"
+crunch $LENGTH $LENGTH -d $RECURRING -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+GEN=$(echo $?)
+if [[ "$GEN" -eq 0 ]]; then
+    echo "Wordlist successfully generated."
+    read -p "Press Enter to go back..." KEY
+    unset LENGTH
+    unset PREFIX
+    unset RECURRING
+    unset TMP_1
+    unset TMP_2
+    unset TMP_3
+    unset TMP_4
+    unset SUFFIX
+    unset GEN
+    go_back
+else
+    echo "Something went wrong, check function \"gen_wl\"."
+    read -p "Press Enter to go back..." KEY
+    unset LENGTH
+    unset PREFIX
+    unset RECURRING
+    unset TMP_1
+    unset TMP_2
+    unset TMP_3
+    unset TMP_4
+    unset SUFFIX
+    unset GEN
+    go_back
 fi
 }
 function test_injection {
@@ -225,7 +275,6 @@ read -p "Press Enter to continue ?" KEY
 IFACE=$(ls /sys/class/net | grep $IFACE)
 ESSID=$(tr -d ' ' <<< $ESSID)
 AIRODUMP="airodump-ng --bssid "$BSSID" -c "$CHAN" -w "$ESSID" "$IFACE""
-
 env -u SESSION_MANAGER xterm -hold -e $AIRODUMP &
 COUNTER=3
 echo
@@ -412,7 +461,7 @@ function go_back {
 function menu {
 if [[ "$IFACENUM" -eq 1 ]]; then
     clear
-    echo "----------------------- WiFiCrack v0.4_beta -----------------------"
+    echo "----------------------- WiFiCrack v0.5_beta -----------------------"
     if [[ -n $STATE ]]; then
         MM=ON
     else
@@ -424,6 +473,7 @@ if [[ "$IFACENUM" -eq 1 ]]; then
     echo "1) Crack"
     echo "e) Enable <M/M>"
     echo "d) Disable <M/M>"
+    echo "w) Generate Wordlists"
     echo "h) View Help"
     echo "v) View APs"
     echo "s) Show Info"
@@ -434,7 +484,7 @@ if [[ "$IFACENUM" -eq 1 ]]; then
     echo -n "$PROMPT"
 else
     clear
-    echo "----------------------- WiFiCrack v0.4_beta -----------------------"
+    echo "----------------------- WiFiCrack v0.5_beta -----------------------"
     if [[ -n $STATE ]]; then
         MM=ON
     else
@@ -446,6 +496,7 @@ else
     echo "1) Crack"
     echo "e) Enable <M/M>"
     echo "d) Disable <M/M>"
+    echo "w) Generate Wordlists"
     echo "h) View Help"
     echo "v) View APs"
     echo "s) Show Info"
@@ -487,6 +538,10 @@ do
             single_interface
             break
             ;; 
+        w )
+            gen_wl
+            break
+            ;;
         d )
             unset_mon
             clear
@@ -558,7 +613,11 @@ do
             clear
             multiple_interfaces
             break
-            ;; 
+            ;;
+        w )
+            gen_wl
+            break
+            ;;
         d )
             unset_mon
             clear
