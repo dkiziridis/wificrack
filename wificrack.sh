@@ -249,7 +249,8 @@ echo "Select Cracking Mode : "
 SELECT="Select : "
 echo
 echo "1) WEP"
-echo "2) WPA1/2"
+echo "2) WPA 1/2"
+echo
 echo "c) Cancel"
 while read -n1 MODE
 do
@@ -257,12 +258,14 @@ do
         1 )
             MODE=WEP
             list_APs
+            set_mon
             wep_attacks
             break
             ;;
         2 )
             MODE=WPA
             list_APs
+            set_mon
             wpa_attacks
             break
             ;;
@@ -339,6 +342,7 @@ if [[ "$ANSWER" = [Yy] ]]; then
 fi
 echo
 echo "You need the $ESSID.cap file in order to feed it to aircrack-ng and brute-force the password. Consider keeping it."
+echo
 read -p "Press Enter to continue..." KEY
 clean_up
 echo
