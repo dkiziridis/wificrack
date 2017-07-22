@@ -507,7 +507,7 @@ fi
 }
 function wep_attacks {
 clear
-echo "---- Select Attack Method ----"
+echo "-------------- Select Attack Method --------------"
 echo
 echo "You picked ($AP"
 echo
@@ -624,6 +624,26 @@ function go_back {
         multiple_interfaces
     fi
 }
+function show_APs {
+clear
+if [[ -n "$STATE" ]]; then
+    unset_mon >> /dev/null
+    echo
+    echo "Please wait..."
+    sleep 5
+fi
+nmcli dev wifi list
+echo
+read -p "Rescan ? [yn] " RES
+while [[ "$RES" = [Yy] ]]; do
+    if [[ "$RES" = [Yy] ]]; then
+        show_APs
+        break
+    else
+        break
+    fi
+done
+}
 function menu {
 clear
 if [[ "$IFACENUM" -gt 1 ]]; then
@@ -701,14 +721,7 @@ do
             break
             ;;
         v )
-            if [[ -n "$STATE" ]]; then
-                unset_mon >> /dev/null
-                echo
-                echo "Please wait..."
-                sleep 5
-            fi
-            clear
-            nmcli dev wifi list
+            show_APs
             echo
             read -p "Press Enter to go back" KEY
             single_interface
@@ -794,15 +807,7 @@ do
             break
             ;;
         v )
-            clear
-            if [[ -n "$STATE" ]]; then
-                echo
-                echo "Please wait..."
-                unset_mon >> /dev/null
-                sleep 5
-            fi
-            clear
-            nmcli dev wifi list
+            show_APs
             echo
             read -p "Press Enter to go back" KEY
             multiple_interfaces
