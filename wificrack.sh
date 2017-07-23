@@ -343,7 +343,7 @@ if [[ "$ANSWER" = [Yy] ]]; then
     done
 fi
 echo
-kill "$(pgrep "xterm -hold -e airodump-ng")"
+kill "$(pgrep xterm)"
 echo "You need the $ESSID.cap file in order to feed it to aircrack-ng and brute-force the password. Consider keeping it."
 echo
 read -p "Press Enter to continue..." KEY
@@ -413,7 +413,7 @@ if [[ "$SUCCESS" != 0 ]]; then
     if [[ "$INJ" = [Yy] ]]; then
         test_injection
     fi
-    kill "$(pgrep "xterm -hold -e airodump-ng")"
+    kill "$(pgrep xterm)"
     echo
     echo "In some cases rebooting your computer usually fixes the Association failure."
     echo
@@ -456,8 +456,7 @@ if [[ "$ANS" = [Yy] ]]; then
         echo
         read -p "Press Enter to clean up files and go back..." KEY
         kill "$(pgrep aireplay-ng)"
-        kill "$(pgrep "xterm -hold -e airodump-ng")"
-        kill "$(pgrep "xterm -hold -e aircrack-ng")"
+        kill "$(pgrep xterm)"
         clean_up
         unset ESSID
         unset AIRODUMP
@@ -472,7 +471,7 @@ if [[ "$ANS" = [Yy] ]]; then
         go_back
     else
         kill "$(pgrep aireplay-ng)"
-        kill "$(pgrep "xterm -hold -e airodump-ng")"
+        kill "$(pgrep xterm)"
         clean_up
         unset ESSID
         unset AIRODUMP
@@ -489,7 +488,7 @@ if [[ "$ANS" = [Yy] ]]; then
 elif [[ "$ANS" = [Nn] ]]; then
     echo "Consider using Fragmentation attack method."
     #kill "$(pgrep aireplay-ng)"
-    kill "$(pgrep "xterm -hold -e airodump-ng")"
+    kill "$(pgrep xterm)"
     clean_up
     unset ESSID
     unset AIRODUMP

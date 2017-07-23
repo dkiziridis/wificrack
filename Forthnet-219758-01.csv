@@ -1,0 +1,6 @@
+
+BSSID, First time seen, Last time seen, channel, Speed, Privacy, Cipher, Authentication, Power, # beacons, # IV, LAN IP, ID-length, ESSID, Key
+18:17:25:21:97:58, 2017-07-23 17:42:08, 2017-07-23 17:44:37,  1,  54, WPA, TKIP,PSK, -71,     1331,        0,   0.  0.  0.  0,  15, Forthnet-219758, 
+
+Station MAC, First time seen, Last time seen, Power, # packets, BSSID, Probed ESSIDs
+
