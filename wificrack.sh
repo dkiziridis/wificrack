@@ -909,7 +909,7 @@ fi
 function check_wlan {
 IFACENUM=$(ls /sys/class/net/ | grep -c wl)
 if [[ "$IFACENUM" -gt 1 ]]; then
-    echo "You have multiple wlan interfaces."
+    echo "You have multiple WLAN interfaces."
     list_ifaces
     multiple_interfaces
 elif [[ "$IFACENUM" -eq 1 ]]; then

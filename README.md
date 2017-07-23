@@ -2,5 +2,21 @@
 
 WiFiCrack version 0.5_beta
 
-This interactive script is able to crack WEP passwords by using the infamous ARP replay method.
-It's also able to capture WPA 1/2 4-Way handshakes.
+This interactive script is able to :
+
+Crack WEP passwords
+Capture WPA 1/2 handshakes
+Generate Cell Phone number wordlists
+Set/Unset WLAN in Monitor Mode
+Test Injection of WLAN interface
+
+Dependecies :
+xterm
+aircrack-ng
+networkmanager
+macchanger
+crunch (needed for wordlist generation - can run without it)
+
+WIP :
+
+Fragmentation attack method for WEP cracking
