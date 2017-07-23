@@ -1,6 +1,0 @@
-
-BSSID, First time seen, Last time seen, channel, Speed, Privacy, Cipher, Authentication, Power, # beacons, # IV, LAN IP, ID-length, ESSID, Key
-D4:6E:0E:63:A7:7F, 2017-07-23 17:45:33, 2017-07-23 17:45:38, 36,  54, WPA2, CCMP,PSK, -16,       42,        0,   0.  0.  0.  0,   6, NSA 5G, 
-
-Station MAC, First time seen, Last time seen, Power, # packets, BSSID, Probed ESSIDs
-
