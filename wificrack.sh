@@ -312,6 +312,8 @@ else
     CHAN=$(echo "$AP" | awk -F ':' '{print $2}')
     ESSID=$(echo "$AP" | awk -F ':' '{print $1}')
     #ESSID=$(tr -d ' ' <<< $ESSID)
+    echo
+    echo "You picked ($AP"
 fi
 }
 function wpa_attacks {
@@ -413,7 +415,6 @@ if [[ "$SUCCESS" != 0 ]]; then
     if [[ "$INJ" = [Yy] ]]; then
         test_injection
     fi
-    kill "$(pgrep xterm)"
     echo
     echo "In some cases rebooting your computer usually fixes the Association failure."
     echo
@@ -454,9 +455,11 @@ if [[ "$ANS" = [Yy] ]]; then
         clear
         echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
         echo
+        echo "WARNING! xterm windows will close, copy the password before continuing."
+        echo
         read -p "Press Enter to clean up files and go back..." KEY
         kill "$(pgrep aireplay-ng)"
-        kill "$(pgrep xterm)"
+        killall xterm
         clean_up
         unset ESSID
         unset AIRODUMP
@@ -487,7 +490,7 @@ if [[ "$ANS" = [Yy] ]]; then
     fi
 elif [[ "$ANS" = [Nn] ]]; then
     echo "Consider using Fragmentation attack method."
-    #kill "$(pgrep aireplay-ng)"
+    kill "$(pgrep aireplay-ng)"
     kill "$(pgrep xterm)"
     clean_up
     unset ESSID
@@ -607,6 +610,14 @@ if [[ -z "$STATE" ]]; then
             unset ASK
             unset LIST
             set_mon
+        else
+            echo
+            echo "Either set a valid channel or press Enter to skip"
+            unset REPLY
+            unset ASK
+            unset LIST
+            sleep 3
+            go_back
         fi
     fi
     IFACE=$(ls /sys/class/net | grep "$IFACE")
@@ -639,9 +650,9 @@ fi
 function show_APs {
 clear
 if [[ -n "$STATE" ]]; then
-    unset_mon >> /dev/null
     echo
     echo "Please wait..."
+    unset_mon >> /dev/null
     sleep 5
 fi
 nmcli dev wifi list
@@ -666,8 +677,9 @@ if [[ -n $STATE ]]; then
 else
     MM=OFF
 fi
+MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
 echo "----------------------- WiFiCrack v0.5_beta -----------------------"
-echo "WLAN Interface : $IFACE"
+echo "WLAN Interface : $IFACE                MAC : $MAC"
 if [[ "$MM" = "ON" ]]; then
     echo "Monitor Mode   : >> $MM <<"
 else
@@ -703,7 +715,6 @@ read -r IFACE <<< "$CHOICE"
 function single_interface {
 STATE=$(ls /sys/class/net | grep mon)
 IFACE=$(ls /sys/class/net | grep wl)
-#MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
 menu
 while read -n1 CHAR
 do
