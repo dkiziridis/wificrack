@@ -7,7 +7,7 @@ echo "----------------------- WiFiCrack HELP -----------------------
 1 --> Sets the selected WLAN interface in monitor mode and begins the cracking process.
 e --> Enables monitor mode for selected WLAN interface.
 d --> Disables monitor mode for selected WLAN interface.
-w --> Generate cell phone number wordlist. 
+w --> Generate phone number wordlist. 
 h --> Shows this text.
 v --> Calls nmcli and displays nearby Access Points.
 s --> Shows technical info of the current WLAN interface.
@@ -80,7 +80,7 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             exit 1
     esac
 
-    read -p "$AIRCRACK $NMCLI $MACCHANGER $XTERM not found on your system, install now ?" DYN
+    read -p "$AIRCRACK $NMCLI $MACCHANGER $XTERM not found on your system, install now [yn] ? " DYN
     if [[ "$DYN" = [Yy] ]]; then
         $INSTALL $AIRCRACK $NMCLI $MACCHANGER $XTERM
         resolve_dependencies
@@ -93,12 +93,12 @@ else
     :
 fi
 }
-function cell_phones_wl {
+function phones_wl {
 clear
-echo "------- Cell Phone number generator, using crunch. -------"
+echo "------- Phone number generator, using crunch. -------"
 echo
 read -p "Enter Phone Number digit length : " LENGTH
-read -p "Enter Cell Phone prefix : " PREFIX
+read -p "Enter Phone prefix : " PREFIX
 read -p "Enter number of recurring digits (Press Enter to skip) : " RECURRING
 TMP_1=${#PREFIX}
 TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
@@ -112,6 +112,7 @@ else
 fi
 GEN=$?
 if [[ "$GEN" -eq 0 ]]; then
+    echo
     echo "Wordlist successfully generated."
     read -p "Press Enter to go back..." KEY
     unset LENGTH
@@ -139,7 +140,270 @@ else
     go_back
 fi
 }
+function dates_wl {
+clear
+# Change defaults here
+MIN_DATE=1
+MAX_DATE=31
+MIN_MONTH=1
+MAX_MONTH=12
+MIN_YEAR=1945
+MAX_YEAR=2017
+
+SMIN_DATE=$MIN_DATE
+SMAX_DATE=$MAX_DATE
+SMIN_MONTH=$MIN_MONTH
+SMAX_MONTH=$MAX_MONTH
+SMIN_YEAR=$MIN_YEAR
+SMAX_YEAR=$MAX_YEAR
+
+clear
+unset VAR
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter minimum DATE (Enter to use defaults) : " VAR
+SMIN_DATE=$VAR
+while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMIN_DATE=$MIN_DATE
+        break
+    elif [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; then
+        SMIN_DATE=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
+        SMIN_DATE=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter maximum DATE (Enter to use defaults) : " VAR
+SMAX_DATE=$VAR
+while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMAX_DATE=$MAX_DATE
+        break
+    elif [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; then
+        SMAX_DATE=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
+        SMAX_DATE=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter minimum MONTH (Enter to use defaults) : " VAR
+SMIN_MONTH=$VAR
+while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMIN_MONTH=$MIN_MONTH
+        break
+    elif [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; then
+        SMIN_MONTH=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
+        SMIN_MONTH=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter maximum MONTH (Enter to use defaults) : " VAR
+SMAX_MONTH=$VAR
+while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMAX_MONTH=$MAX_MONTH
+        break
+    elif [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; then
+        SMAX_MONTH=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
+        SMAX_MONTH=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter minimum YEAR (Enter to use defaults) : " VAR
+SMIN_YEAR=$VAR
+while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMIN_YEAR=$MIN_YEAR
+        break
+    elif [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; then
+        SMIN_YEAR=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
+        SMIN_YEAR=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- Date Generator ---------------------"
+echo
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Enter maximum YEAR (Enter to use defaults) : " VAR
+SMAX_YEAR=$VAR
+while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
+    if [[ -z "$VAR" ]]; then
+        SMAX_YEAR=$MAX_YEAR
+        break
+    elif [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; then
+        SMAX_YEAR=$VAR
+        break
+    else
+        read -p "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
+        SMAX_YEAR=$VAR
+    fi
+done
+unset VAR
+
+clear
+echo "--------------------- <Date Generator> ---------------------"
+echo
+echo "The program will generate the following wordlist." 
+echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
+echo
+read -p "Confirm ? [yn] " KEY
+echo
+if [[ "$KEY" = [Yy] ]]; then
+    DATES=$(seq -w $SMIN_DATE $SMAX_DATE)
+    MONTHS=$(seq -w $SMIN_MONTH $SMAX_MONTH)
+    YEARS=$(seq -w $SMIN_YEAR $SMAX_YEAR)
+    for i in ${YEARS[@]}; do
+        for j in ${MONTHS[@]}; do
+            for s in ${DATES[@]}; do
+                echo "$s$j$i" >> "$SMIN_YEAR-$SMAX_YEAR.lst"
+                SUCCESS="$?"
+            done
+        done
+    done
+elif [[ "$KEY" = [Nn] ]]; then
+    unset SUCCESS
+    unset DATES
+    unset MONTHS
+    unset YEARS
+    unset MIN_DATE
+    unset MAX_DATE
+    unset MIN_MONTH
+    unset MAX_MONTH
+    unset MIN_YEAR
+    unset MAX_YEAR
+    unset SMIN_DATE
+    unset SMAX_DATE
+    unset SMIN_MONTH
+    unset SMAX_MONTH
+    unset SMIN_YEAR
+    unset SMAX_YEAR
+    unset i
+    unset j
+    unset s
+    go_back
+else
+    read -p "Rerun ? [yn] " KEY
+    if [[ "$KEY" = [Yy] ]]; then
+        dates_wl
+    else
+        unset SUCCESS
+        unset DATES
+        unset MONTHS
+        unset YEARS
+        unset MIN_DATE
+        unset MAX_DATE
+        unset MIN_MONTH
+        unset MAX_MONTH
+        unset MIN_YEAR
+        unset MAX_YEAR
+        unset SMIN_DATE
+        unset SMAX_DATE
+        unset SMIN_MONTH
+        unset SMAX_MONTH
+        unset SMIN_YEAR
+        unset SMAX_YEAR
+        unset i
+        unset j
+        unset s
+        go_back
+    fi
+fi
+if [[ "$?" = 0 ]]; then
+    echo 
+    echo "Wordlist generated successfully!"
+    echo "Saved as $SMIN_YEAR-$SMAX_YEAR.lst"
+    echo
+    read -p "Press Enter to go back." KEY
+    unset SUCCESS
+    unset DATES
+    unset MONTHS
+    unset YEARS
+    unset MIN_DATE
+    unset MAX_DATE
+    unset MIN_MONTH
+    unset MAX_MONTH
+    unset MIN_YEAR
+    unset MAX_YEAR
+    unset SMIN_DATE
+    unset SMAX_DATE
+    unset SMIN_MONTH
+    unset SMAX_MONTH
+    unset SMIN_YEAR
+    unset SMAX_YEAR
+    unset i
+    unset j
+    unset s
+    go_back
+else
+    read -p "Something went wrong, check output." KEY
+    unset SUCCESS
+    unset DATES
+    unset MONTHS
+    unset YEARS
+    unset MIN_DATE
+    unset MAX_DATE
+    unset MIN_MONTH
+    unset MAX_MONTH
+    unset MIN_YEAR
+    unset MAX_YEAR
+    unset SMIN_DATE
+    unset SMAX_DATE
+    unset SMIN_MONTH
+    unset SMAX_MONTH
+    unset SMIN_YEAR
+    unset SMAX_YEAR
+    unset i
+    unset j
+    unset s
+    go_back
+fi
+}
 function generate_wordlists {
+clear
 CRUNCH=$(command -v crunch)
 if [[ -z "$CRUNCH" ]]; then
     echo
@@ -148,7 +412,33 @@ if [[ -z "$CRUNCH" ]]; then
     unset CRUNCH
     go_back
 fi
-cell_phones_wl
+echo "---------------- Generate Wordlists ----------------"
+echo
+echo "d) Generate Dates"
+echo "p) Generate Phone numbers"
+echo "c) Cancel"
+echo
+SELECT="Choose : "
+echo "$SELECT"
+while read -n1 WORD
+do
+    case $WORD in
+        d )
+            dates_wl
+            break
+            ;;
+        p )
+            phones_wl
+            break
+            ;;
+        c )
+            go_back
+            break
+            ;;
+        * )
+            echo -ne "\nInvalid character '$WORD' entered. $SELECT"
+    esac
+done
 }
 function test_injection {
 clear
@@ -458,7 +748,7 @@ if [[ "$PRGA" = 0 ]]; then
         echo
         echo "No .xor file found."
         echo
-        unset ESSID
+        unset ESSID                               
         unset CHAN
         unset BSSID
         unset PRGA
@@ -596,7 +886,7 @@ if [[ "$ANS" = [Yy] ]]; then
     if [[ "$ANSWER" = [Yy] ]]; then
         CAP=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
         if [[ -z "$CAP" ]]; then
-            echo "No .cap files found."
+            echo "No $ESSID.cap files found."
             echo
             unset ESSID
             unset AIRODUMP
@@ -840,7 +1130,7 @@ else
     MM=OFF
 fi
 MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
-echo "----------------------- WiFiCrack v0.6_beta -----------------------"
+echo "----------------------- WiFiCrack v0.7_beta -----------------------"
 echo "WLAN Interface : $IFACE                MAC : $MAC"
 if [[ "$MM" = "ON" ]]; then
     echo "Monitor Mode   : >> $MM <<"
