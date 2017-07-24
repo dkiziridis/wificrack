@@ -840,7 +840,7 @@ else
     MM=OFF
 fi
 MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
-echo "----------------------- WiFiCrack v0.5_beta -----------------------"
+echo "----------------------- WiFiCrack v0.6_beta -----------------------"
 echo "WLAN Interface : $IFACE                MAC : $MAC"
 if [[ "$MM" = "ON" ]]; then
     echo "Monitor Mode   : >> $MM <<"

@@ -1,10 +1,10 @@
 # wificrack
 
-WiFiCrack version 0.5_beta
+WiFiCrack version 0.6_beta
 
 This interactive script is able to
 
---> Crack WEP passwords
+--> Crack WEP passwords using both ARP Replay and Fragmentation method
 
 --> Capture WPA 1/2 handshakes
 
@@ -25,7 +25,3 @@ Dependecies
 --> macchanger
 
 --> crunch (needed for wordlist generation - can run without it)
-
-WIP 
-
---> Fragmentation attack method for WEP cracking
