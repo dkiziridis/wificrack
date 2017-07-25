@@ -404,22 +404,16 @@ fi
 }
 function generate_wordlists {
 clear
-CRUNCH=$(command -v crunch)
-if [[ -z "$CRUNCH" ]]; then
-    echo
-    echo "Crunch is not installed. Install it and try again."
-    read -p "Press Enter to go back..." KEY
-    unset CRUNCH
-    go_back
-fi
+
 echo "---------------- Generate Wordlists ----------------"
 echo
 echo "d) Generate Dates"
 echo "p) Generate Phone numbers"
+echo
 echo "c) Cancel"
 echo
-SELECT="Choose : "
-echo "$SELECT"
+SELECT="Select : "
+echo -n "$SELECT"
 while read -n1 WORD
 do
     case $WORD in
@@ -428,6 +422,14 @@ do
             break
             ;;
         p )
+            CRUNCH=$(command -v crunch)
+            if [[ -z "$CRUNCH" ]]; then
+                echo
+                echo "Crunch is not installed. Install it and try again."
+                read -p "Press Enter to go back..." KEY
+                unset CRUNCH
+                go_back
+            fi
             phones_wl
             break
             ;;
@@ -542,6 +544,8 @@ echo "1) WEP"
 echo "2) WPA 1/2"
 echo
 echo "c) Cancel"
+echo
+echo -n "$SELECT"
 while read -n1 MODE
 do
     case $MODE in
@@ -606,7 +610,7 @@ else
     REPLY="$CHAN"
     echo
     echo "You picked ($AP)"
-    echo "$ESSID channel : $CHAN"
+    echo "The new interface will be set on channel : $CHAN."
 fi
 }
 function wpa_attacks {
@@ -869,8 +873,6 @@ if [[ "$SUCCESS" != 0 ]]; then
         test_injection
     fi
     echo
-    echo "In some cases rebooting your computer usually fixes the Association failure."
-    echo
     unset ESSID
     unset AIRODUMP
     unset CHAN
@@ -899,7 +901,7 @@ if [[ "$ANS" = [Yy] ]]; then
         COMMAND="aircrack-ng $CAP"
         env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
         clear
-        echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
+        echo "Wait for aircrack-ng to finish, then copy the password."
         echo
         echo "WARNING! xterm windows will close, copy the password before continuing."
         echo
@@ -1107,16 +1109,23 @@ if [[ -n "$STATE" ]]; then
     unset_mon >> /dev/null
     sleep 5
 fi
-nmcli dev wifi list
+nmcli -p dev wifi list
 echo
-read -p "Rescan ? [yn] " RES
-while [[ "$RES" = [Yy] ]]; do
-    if [[ "$RES" = [Yy] ]]; then
-        show_APs
-        break
-    else
-        break
-    fi
+SELECT="Press r to rescan or Enter to go back : "
+echo
+echo -n "$SELECT"
+while read -n1 SLCT
+do
+    case $SLCT in
+        [Rr] )
+            show_APs
+            break
+            ;;
+        * )
+            go_back
+            break
+            ;;
+    esac
 done
 }
 function menu {
@@ -1156,13 +1165,15 @@ echo -n "$PROMPT"
 }
 function list_ifaces {
 clear
-readarray -t IFACES < <(ls /sys/class/net | grep wl)
+readarray -t IFACES < <(airmon-ng | grep -T phy)
 echo "Select an interface (WLAN Card) and press Enter"
+echo "#) PHY  Interface        Driver          Chipset"
+echo
 select CHOICE in "${IFACES[@]}"; do
     [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
     break
 done
-read -r IFACE <<< "$CHOICE"
+IFACE=$(echo $CHOICE | awk -F ' ' '{print $2}')
 }
 function single_interface {
 IFACE=$(ls /sys/class/net | grep wl)
