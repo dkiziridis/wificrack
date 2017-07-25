@@ -438,7 +438,7 @@ do
             break
             ;;
         * )
-            echo -ne "\nInvalid character '$WORD' entered. $SELECT"
+            echo -ne "\n$SELECT"
     esac
 done
 }
@@ -568,7 +568,7 @@ do
             break
             ;;
         * )
-            echo -ne "\nInvalid character '$MODE' entered. $SELECT"
+            echo -ne "\n$SELECT"
     esac
 done
 }
@@ -990,7 +990,7 @@ do
             break
             ;;
         * )
-            echo -ne "\nInvalid character '$SEL' entered. $PROMPT"
+            echo -ne "\n$PROMPT"
     esac
 done
 }
@@ -1160,7 +1160,7 @@ fi
 echo "t) Test Injection         r) Verbose Test (faster)"
 echo "q) Abort!"
 echo
-PROMPT="Choose : "
+PROMPT="Select : "
 echo -n "$PROMPT"
 }
 function list_ifaces {
@@ -1256,7 +1256,7 @@ do
             exit 0
             ;;
         * )
-            echo -ne "\nInvalid character '$CHAR' entered. $PROMPT"
+            echo -ne "\n$PROMPT"
     esac
 done
 }
@@ -1345,7 +1345,7 @@ do
             exit 0
             ;;
         * )
-            echo -ne "\nInvalid character '$CHAR' entered. $PROMPT"
+            echo -ne "\n$PROMPT"
     esac
 done
 }
