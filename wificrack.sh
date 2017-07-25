@@ -1167,7 +1167,7 @@ function list_ifaces {
 clear
 readarray -t IFACES < <(airmon-ng | grep -T phy)
 echo "Select an interface (WLAN Card) and press Enter"
-echo "#) PHY  Interface        Driver          Chipset"
+echo "#) PHY  Interface       Driver          Chipset"
 echo
 select CHOICE in "${IFACES[@]}"; do
     [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
