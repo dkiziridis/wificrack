@@ -422,8 +422,9 @@ else
 fi
 }
 function choose_mode {
+clear
 SELECT="Select : "
-echo -ne "\nSelect Cracking Mode : \n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
+echo -ne "\nSelect Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
 while read -rn1 MODE
 do
     case "$MODE" in
@@ -585,9 +586,8 @@ if [[ -z "$STATE" ]]; then
     echo -ne "\n\nSetting M/M on $IFACE"
     set_mon >> /dev/null
 fi
-echo
 ESSID=$(tr -d ' ' <<< "$ESSID")
-echo
+echo -ne "\n\n"
 COUNTER=0
 until [[ "$COUNTER" -eq 3 ]]; do
     clear
@@ -677,17 +677,16 @@ fi
 }
 function arp_replay {
 clear
-echo -ne "------------ WEP ARP replay method ------------\n"
-read -rp "Press Enter to continue ? " KEY
+echo "------------ WEP ARP replay method ------------"
+read -rp "Press Enter to continue" KEY
 if [[ -z "$STATE" ]]; then
     echo
     echo "Setting M/M on $IFACE"
     set_mon >> /dev/null
 fi
-echo
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
-echo
+echo -ne "\n\n"
 COUNTER=0
 until [[ "$COUNTER" -eq 3 ]]; do
     clear
@@ -877,7 +876,7 @@ if [[ -n "$STATE" ]]; then
     sleep 5
 fi
 nmcli -p dev wifi list
-SELECT="Press r to rescan or Enter to go back : "
+SELECT="Press [r] to rescan or Enter to go back : "
 echo -ne "\n\n$SELECT"
 while read -rn1 SLCT
 do
