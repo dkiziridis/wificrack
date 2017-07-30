@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env
 
 function help {
 clear
@@ -76,6 +76,7 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             INSTALL="dnf -y install "
             ;;
         * )
+            clear
             echo -ne "Unable to determine Linux Distribution!\nInstall$AIRCRACK$NMCLI$MACCHANGER$XTERM manually."
             exit 1
     esac
