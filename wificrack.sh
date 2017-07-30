@@ -424,7 +424,7 @@ fi
 function choose_mode {
 clear
 SELECT="Select : "
-echo -ne "\nSelect Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
+echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
 while read -rn1 MODE
 do
     case "$MODE" in
@@ -463,7 +463,7 @@ if [[ -n "$STATE" ]]; then
 fi
 readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list | grep $MODE | sort -u -t: -k1,1 )
 if [[ -z "$LINES" ]]; then
-    echo -ne "No $MODE Networks found.\nPress Enter to go back"
+    echo -ne "\nNo $MODE Networks found.\n\nPress Enter to go back"
     read -r KEY
     go_back
 else
@@ -580,7 +580,7 @@ fi
 }
 function fragmentation { 
 clear
-echo -ne "------------ WEP Fragmentation method ------------\n"
+echo "------------ WEP Fragmentation method ------------"
 read -rp "Press Enter to continue ? " KEY
 if [[ -z "$STATE" ]]; then
     echo -ne "\n\nSetting M/M on $IFACE"
@@ -790,7 +790,7 @@ echo -ne "\nName                          : $NAME\nMAC Addr                     
 }
 function unset_mon {
 if [[ -z "$STATE" ]]; then
-    echo -ne "\nMonitor mode was not set on $IFACE."
+    echo -ne "\n\nMonitor mode was not set on $IFACE"
     sleep 2
 else
     echo -ne "\nDisabling Monitor Mode for $IFACE...\n"
@@ -812,17 +812,18 @@ fi
 function set_mon {
 if [[ -z "$STATE" ]]; then
     LIST="1 2 3 4 5 6 7 8 9 10 11 12 13 14 131 132 132 133 133 134 134 135 136 136 137 137 138 138 36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 149 153 157 161 165"
-    echo -ne "\nSetting $IFACE in Monitor Mode...\n"
-    echo "Creating new interface..."
+    echo -ne "\n\nSetting $IFACE in Monitor Mode...\n\n"
     if [[ "$CHANFLAG" = 1 ]]; then
         clear
         echo -ne "Setting $IFACE in Monitor Mode...\n\nYou picked ($AP)\nThe new interface will be set on channel : $CHAN.\n"
         airmon-ng start "$IFACE" "$REPLY" >> /dev/null
     else
         read -rp "Set Channel or (Press Enter to skip) : " REPLY
-        if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then 
+        if [[ "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) ]]; then
+            echo "Creating new interface..."
             airmon-ng start "$IFACE" "$REPLY" >> /dev/null
-        elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then 
+        elif [[ ! "$LIST" =~ (^|[[:space:]])"$REPLY"($|[[:space:]]) && "$REPLY" = "" ]]; then
+            echo "Creating new interface..."
             airmon-ng start "$IFACE" >> /dev/null
         else
             echo "Invalid Channel \"$REPLY\" entered. "
