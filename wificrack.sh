@@ -359,7 +359,7 @@ if [[ -n "$STATE" ]]; then
                 if [[ -n "$WORKS" ]]; then
                     echo -ne "WLAN interface ($IFACE) supports injection.\n"
                     if [[ "$FLAG" -eq 1 ]]; then
-                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE."
+                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
                         unset_mon >> /dev/null
                     fi
                     unset WORKS
@@ -371,7 +371,7 @@ if [[ -n "$STATE" ]]; then
                     echo "WLAN interface ($IFACE) does NOT support injection."
                     echo
                     if [[ "$FLAG" -eq 1 ]]; then
-                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE."
+                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
                         unset_mon >> /dev/null
                     fi
                     unset WORKS
@@ -386,7 +386,7 @@ if [[ -n "$STATE" ]]; then
                 unset RANGE
                 echo "Please wait..."
                 if [[ "$FLAG" -eq 1 ]]; then
-                    echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE."
+                    echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
                     unset_mon >> /dev/null
                 fi
             fi
@@ -397,7 +397,7 @@ if [[ -n "$STATE" ]]; then
             echo "WLAN interface ($IFACE) supports injection."
             echo
             if [[ "$FLAG" -eq 1 ]]; then
-                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE."
+                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
                 unset_mon >> /dev/null
             fi
             unset WORKS
@@ -408,7 +408,7 @@ if [[ -n "$STATE" ]]; then
             echo "WLAN interface ($IFACE) does NOT support injection."
             echo
             if [[ "$FLAG" -eq 1 ]]; then
-                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE."
+                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
                 unset_mon >> /dev/null
             fi
             unset WORKS
@@ -418,7 +418,7 @@ if [[ -n "$STATE" ]]; then
         fi
     fi
 else
-    echo -ne "\nPlease wait... \nSetting monitor mode on $IFACE."
+    echo -ne "\nPlease wait... \nSetting monitor mode on $IFACE.\n"
     set_mon >> /dev/null
     FLAG=1
     test_injection
@@ -498,7 +498,6 @@ function wpa_attacks {
 clear
 echo "------------ WPA1/2 4-Way Handshake Capture ------------"
 read -rp "Press Enter to continue ? " KEY
-IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | grep "$IFACE")
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
@@ -566,7 +565,7 @@ if [[ "$ASR" = [Yy] && "$ANS" = [Yy] ]]; then
     rm -f replay*.cap
     if [[ -n "$FRAGMENT" ]]; then
         rm -f fragment*.xor
-        rm -f "$ESSID".arp
+        rm -f "$ESSID"*.arp
     fi
 elif [[ "$ASR" = [Yy] && "$ANS" = [Nn] ]]; then
     rm -f "$ESSID"*.netxml
@@ -574,7 +573,7 @@ elif [[ "$ASR" = [Yy] && "$ANS" = [Nn] ]]; then
     rm -f "$ESSID"*.csv
     if [[ -n "$FRAGMENT" ]]; then
         rm -f fragment*.xor
-        rm -f "$ESSID".arp
+        rm -f "$ESSID"*.arp
     fi
     rm -f replay*.cap
 elif [[ "$ASR" = [Nn] ]]; then
