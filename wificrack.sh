@@ -17,6 +17,7 @@ q --> Exits the script.
 "
 }
 function resolve_dependencies {
+clear
 AIRCRACK=$(command -v aircrack-ng)
 NMCLI=$(command -v nmcli)
 MACCHANGER=$(command -v macchanger)
@@ -77,7 +78,7 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             ;;
         * )
             clear
-            echo -ne "Unable to determine Linux Distribution!\nInstall$AIRCRACK$NMCLI$MACCHANGER$XTERM manually."
+            echo -ne "Unable to determine Linux Distribution!\n\nInstall$AIRCRACK$NMCLI$MACCHANGER$XTERM manually."
             exit 1
     esac
 
@@ -118,11 +119,11 @@ if [[ "$GEN" -eq 0 ]]; then
     echo "
     Wordlist successfully generated."
     read -rp "Press Enter to go back..." KEY
-    go_back
+    options
 else
     echo "Either something went wrong or you entered no values, check function \"generate_wordlists\"."
     read -rp "Press Enter to go back..." KEY
-    go_back
+    options
 fi
 }
 function dates_wl {
@@ -294,14 +295,14 @@ do
             if [[ "$?" = 0 ]]; then
                 echo -ne "\n\nWordlist generated successfully! \nSaved as $SMIN_YEAR-$SMAX_YEAR.lst\n"
                 read -rp "Press Enter to go back." KEY
-                go_back
+                options
             else
                 read -rp "Something went wrong, check output." KEY
-                go_back
+                options
             fi
             ;;
         [Nn] )
-            go_back
+            options
             ;;
         * )
             echo -ne "\n[n] Cancel [y] Generate "
@@ -327,13 +328,13 @@ do
                 echo -ne "\nCrunch is not installed. Install it and try again."
                 read -rp "Press Enter to go back..." KEY
                 unset CRUNCH
-                go_back
+                options
             fi
             phones_wl
             break
             ;;
         c )
-            go_back
+            options
             break
             ;;
         * )
@@ -445,7 +446,7 @@ do
             break
             ;;
         c )
-            go_back
+            options
             break
             ;;
         * )
@@ -467,7 +468,7 @@ readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list
 if [[ -z "$LINES" ]]; then
     echo -ne "\nNo $MODE Networks found.\n\nPress Enter to go back"
     read -r KEY
-    go_back
+    options
 else
     echo -ne "\nSelect an AP and press Enter or Select 1 to rescan\n\n"
     echo -ne "   SSID  CHAN    BSSID   SECURITY    SIGNAL\n\n"
@@ -528,7 +529,7 @@ do
 						clean_up
                         echo
                         read -rp "Press Enter to go back " KEY
-                        go_back
+                        options
                         break
                         ;;
                     * )
@@ -546,7 +547,7 @@ do
             rm -f replay*.cap
             echo
             read -rp "Press Enter to go back " KEY
-            go_back
+            options
             break
             ;;
         * )
@@ -615,7 +616,7 @@ if [[ "$SUCCESS" != 0 ]]; then
     fi
     echo
     read -rp "Press Enter to go back" KEY
-    go_back
+    options
 fi
 aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
 PRGA=$?
@@ -625,7 +626,7 @@ if [[ "$PRGA" = 0 ]]; then
     if [[ -z "$FRAGMENT" ]]; then
         echo -ne "\nNo .xor file found.\nPress Enter to go back"
         read -r KEY
-        go_back
+        options
     fi
     packetforge-ng -0 -a "$BSSID" -h "$NEWMAC" -k 255.255.255.255 -l 255.255.255.255 -y "$FRAGMENT" -w "$ESSID""$EXT"
     CAPTURE="airodump-ng -c $CHAN --bssid $BSSID -w $ESSID $IFACE"
@@ -644,7 +645,7 @@ if [[ "$PRGA" = 0 ]]; then
                     killall xterm
                     clean_up
                     read -rp "Press Enter to go back" KEY
-                    go_back
+                    options
                 fi
                 CRACK="aircrack-ng -b $BSSID $CAPFILE"
                 env -u SESSION_MANAGER xterm -hold -e "$CRACK" &
@@ -654,14 +655,14 @@ if [[ "$PRGA" = 0 ]]; then
                 kill "$(pgrep aireplay-ng)"
                 killall xterm
                 clean_up
-                go_back
+                options
                 ;;
             [Nn] )
                 kill "$(pgrep aireplay-ng)"
                 killall xterm
                 clean_up
                 read -rp "Press Enter to go back" KEY
-                go_back
+                options
                 ;;
             * )
                 echo -ne "\nInvalid choice, enter y or n "
@@ -715,7 +716,7 @@ if [[ "$SUCCESS" != 0 ]]; then
     fi
     echo
     read -rp "Press Enter to go back" KEY
-    go_back
+    options
 fi
 echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed...\nProceed ? [yn] "
 while read -rn1 ANS
@@ -732,14 +733,14 @@ do
             killall xterm
             clean_up
             read -rp "Press Enter to go back" KEY
-            go_back
+            options
             ;;
         [Nn] )
             kill "$(pgrep aireplay-ng)"
             kill "$(pgrep xterm)"
             clean_up
             read -rp "Press Enter to exit and go back. " KEY
-            go_back
+            options
             ;;
         * )
             echo -ne "\nInvalid answer, enter y or n "
@@ -771,7 +772,7 @@ do
             break
             ;;
         c )
-            go_back
+            options
             break
             ;;
         * )
@@ -842,7 +843,7 @@ if [[ -z "$STATE" ]]; then
                 unset ASK
                 unset LIST
                 sleep 3
-                go_back
+                options
             fi
         fi
     fi
@@ -864,13 +865,6 @@ else
     unset CHANFLAG
 fi
 }
-function go_back {
-if [[ "$IFACENUM" -eq 1 ]]; then
-    single_interface
-else
-    multiple_interfaces
-fi
-}
 function show_APs {
 clear
 if [[ -n "$STATE" ]]; then
@@ -889,7 +883,7 @@ do
             break
             ;;
         * )
-            go_back
+            options
             break
             ;;
     esac
@@ -940,9 +934,7 @@ select CHOICE in "${IFACES[@]}"; do
 done
 IFACE=$(echo "$CHOICE" | awk -F ' ' '{print $2}')
 }
-function single_interface {
-#IFACE=$(ls /sys/class/net | grep wl)
-IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}')
+function options {
 STATE=$(iw "$IFACE" info | grep monitor)
 menu
 while read -rn1 CHAR
@@ -956,9 +948,9 @@ do
             set_mon
             echo
             clear
-            single_interface
+            options
             break
-            ;; 
+            ;;
         w )
             generate_wordlists
             break
@@ -966,34 +958,34 @@ do
         d )
             unset_mon
             clear
-            single_interface
+            options
             break
             ;;
         h )
             echo
             help
             read -rp "Press Enter to go back" KEY
-            single_interface
+            options
             break
             ;;
         v )
             show_APs
             echo
             read -rp "Press Enter to go back" KEY
-            single_interface
+            options
             break
             ;;
         s )
             show_info
             echo
             read -rp "Press Enter to go back" KEY
-            single_interface
+            options
             break
             ;;
         t )
             test_injection
             read -rp "Press Enter to go back" KEY
-            single_interface
+            options
             break
             ;;
         r ) 
@@ -1010,93 +1002,12 @@ do
             fi
             unset FLG
             read -rp "Press Enter to go back" KEY
-            single_interface
-            break
-            ;;
-        q )
-            clear
-            exit 0
-            ;;
-        * )
-            echo -ne "\n$PROMPT"
-            ;;
-    esac
-done
-}
-function multiple_interfaces {
-STATE=$(iw "$IFACE" info | grep monitor)
-menu
-while read -rn1 CHAR
-do
-    case "$CHAR" in
-        1 )
-            choose_mode
-            break
-            ;;
-        e )
-            set_mon
-            echo
-            clear
-            multiple_interfaces
-            break
-            ;;
-        w )
-            generate_wordlists
-            break
-            ;;
-        d )
-            unset_mon
-            clear
-            multiple_interfaces
-            break
-            ;;
-        h )
-            echo
-            help
-            read -rp "Press Enter to go back" KEY
-            multiple_interfaces
-            break
-            ;;
-        v )
-            show_APs
-            echo
-            read -rp "Press Enter to go back" KEY
-            multiple_interfaces
-            break
-            ;;
-        s )
-            show_info
-            echo
-            read -rp "Press Enter to go back" KEY
-            multiple_interfaces
-            break
-            ;;
-        t )
-            test_injection
-            read -rp "Press Enter to go back" KEY
-            multiple_interfaces
-            break
-            ;;
-        r ) 
-            clear
-            if [[ -z "$STATE" ]]; then
-                set_mon >> /dev/null
-                FLG=1
-                aireplay-ng -9 "$IFACE"
-            else
-                aireplay-ng -9 "$IFACE"
-            fi
-            if [[ "$FLG" = 1 ]]; then
-                unset_mon >> /dev/null
-            fi
-            unset FLG
-            read -rp "Press Enter to go back" KEY
-            multiple_interfaces
+            options
             break
             ;;
         c )
             list_ifaces
-            multiple_interfaces
+            options
             break
             ;;
         q )
@@ -1120,9 +1031,10 @@ IFACENUM=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}' | wc -l)
 if [[ "$IFACENUM" -gt 1 ]]; then
     echo "You have multiple WLAN interfaces."
     list_ifaces
-    multiple_interfaces
+    options
 elif [[ "$IFACENUM" -eq 1 ]]; then
-    single_interface
+    IFACE=$(find /sys/class/net -name "wl*" | awk -F/ '{print $NF}')
+    options
 elif [[ "$IFACENUM" -eq 0 ]]; then
     echo "No WLAN interfaces found."
 fi
