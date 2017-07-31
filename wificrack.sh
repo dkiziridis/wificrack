@@ -84,14 +84,16 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
     read -rp "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system, install now [yn] ? " DYN
     if [[ "$DYN" = [Yy] ]]; then
         $INSTALL $AIRCRACK $NMCLI $MACCHANGER $XTERM
-        resolve_dependencies
+        SUCCESS="$?"
+        if [[ "$SUCCESS" != 0 ]]; then
+            echo -ne "\nSomething went wrong...\n\n-->$AIRCRACK$NMCLI$MACCHANGER$XTERM failed to install."
+            exit 1
+        fi
     else
         clear
         echo "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system."
         exit 1
     fi
-else
-    :
 fi
 }
 function phones_wl {
@@ -129,7 +131,7 @@ MIN_DATE=1
 MAX_DATE=31
 MIN_MONTH=1
 MAX_MONTH=12
-MIN_YEAR=1945
+MIN_YEAR=1900
 MAX_YEAR=2017
 
 SMIN_DATE=$MIN_DATE
