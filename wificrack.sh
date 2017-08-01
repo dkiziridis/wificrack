@@ -99,8 +99,7 @@ fi
 }
 function phones_wl {
 clear
-echo "------- Phone number generator, using crunch. -------"
-echo
+echo -ne "------- Phone number generator, using crunch. -------\n\n"
 read -rp "Enter Phone Number digit length : " LENGTH
 read -rp "Enter Phone prefix : " PREFIX
 read -rp "Enter number of recurring digits (Press Enter to skip) : " RECURRING
@@ -114,7 +113,7 @@ if [[ -z "$RECURRING" ]]; then
 else
     crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4""$SUFFIX"
 fi
-GEN=$?
+GEN="$?"
 if [[ "$GEN" -eq 0 ]]; then
     echo "
     Wordlist successfully generated."
@@ -127,188 +126,51 @@ else
 fi
 }
 function dates_wl {
-# Change defaults here
-MIN_DATE=1
-MAX_DATE=31
-MIN_MONTH=1
-MAX_MONTH=12
-MIN_YEAR=1900
-MAX_YEAR=2017
-
-SMIN_DATE=$MIN_DATE
-SMAX_DATE=$MAX_DATE
-SMIN_MONTH=$MIN_MONTH
-SMAX_MONTH=$MAX_MONTH
-SMIN_YEAR=$MIN_YEAR
-SMAX_YEAR=$MAX_YEAR
-
 clear
-unset VAR
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter minimum DATE (Enter to use defaults) : " VAR
-SMIN_DATE=$VAR
-while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMIN_DATE=$MIN_DATE
-        break
-    elif [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; then
-        SMIN_DATE=$VAR
+echo -ne "--------------------- Date Generator ---------------------\n\nEnter dates in the following format\n\nFirst date: YYYY-MM-DD  -  Last date: YYYY-MM-DD\n\n             ex. 1991-5-6 <-> 2016-12-3\n\n"
+
+FLAG=1
+while [[ "$FLAG" != 0 ]]; do
+    read -rp "Enter first date: " FIRST_DATE
+    read -rp "Enter last date: " LAST_DATE
+    if [[ -z "$FIRST_DATE" ]] && [[ -z "$LAST_DATE" ]]; then
+        FIRST_DATE="1940-1-1"
+        LAST_DATE="2017-12-31"
+        echo -ne "\nUsing default dates 1940-1-1 <-> 2017-12-31\n\n"
+        DATE_DIFF=$(echo $(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 )))
+        FLAG=0
         break
     else
-        read -rp "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
-        SMIN_DATE=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter maximum DATE (Enter to use defaults) : " VAR
-SMAX_DATE=$VAR
-while ! [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMAX_DATE=$MAX_DATE
-        break
-    elif [[ "$VAR" -ge "$MIN_DATE" && "$VAR" -le "$MAX_DATE" ]]; then
-        SMAX_DATE=$VAR
-        break
-    else
-        read -rp "$VAR is out of bounds, new input [$MIN_DATE..$MAX_DATE] : " VAR
-        SMAX_DATE=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter minimum MONTH (Enter to use defaults) : " VAR
-SMIN_MONTH=$VAR
-while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMIN_MONTH=$MIN_MONTH
-        break
-    elif [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; then
-        SMIN_MONTH=$VAR
-        break
-    else
-        read -rp "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
-        SMIN_MONTH=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter maximum MONTH (Enter to use defaults) : " VAR
-SMAX_MONTH=$VAR
-while ! [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMAX_MONTH=$MAX_MONTH
-        break
-    elif [[ "$VAR" -ge "$MIN_MONTH" && "$VAR" -le "$MAX_MONTH" ]]; then
-        SMAX_MONTH=$VAR
-        break
-    else
-        read -rp "$VAR is out of bounds, new input [$MIN_MONTH..$MAX_MONTH] : " VAR
-        SMAX_MONTH=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter minimum YEAR (Enter to use defaults) : " VAR
-SMIN_YEAR=$VAR
-while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMIN_YEAR=$MIN_YEAR
-        break
-    elif [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; then
-        SMIN_YEAR=$VAR
-        break
-    else
-        read -rp "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
-        SMIN_YEAR=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- Date Generator ---------------------"
-echo
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-read -rp "Enter maximum YEAR (Enter to use defaults) : " VAR
-SMAX_YEAR=$VAR
-while ! [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; do
-    if [[ -z "$VAR" ]]; then
-        SMAX_YEAR=$MAX_YEAR
-        break
-    elif [[ "$VAR" -ge "$MIN_YEAR" && "$VAR" -le "$MAX_YEAR" ]]; then
-        SMAX_YEAR=$VAR
-        break
-    else
-        read -rp "$VAR is out of bounds, new input [$MIN_YEAR..$MAX_YEAR] : " VAR
-        SMAX_YEAR=$VAR
-    fi
-done
-unset VAR
-
-clear
-echo "--------------------- <Date Generator> ---------------------"
-echo
-echo "The program will generate the following wordlist." 
-echo "Date range : $SMIN_DATE/$SMIN_MONTH/$SMIN_YEAR - $SMAX_DATE/$SMAX_MONTH/$SMAX_YEAR"
-echo
-echo "Confirm ? [yn] "
-echo
-while read -rn1 KEY
-do
-    case "$KEY" in
-        [Yy] )
-            DATES=$(seq -w "$SMIN_DATE" "$SMAX_DATE")
-            MONTHS=$(seq -w "$SMIN_MONTH" "$SMAX_MONTH")
-            YEARS=$(seq -w "$SMIN_YEAR" "$SMAX_YEAR")
-            for i in ${YEARS[@]}; do
-                for j in ${MONTHS[@]}; do
-                    for s in ${DATES[@]}; do
-                        echo "$s$j$i" >> "$SMIN_YEAR-$SMAX_YEAR.lst"
-                        SUCCESS="$?"
-                    done
-                done
-            done
-            if [[ "$?" = 0 ]]; then
-                echo -ne "\n\nWordlist generated successfully! \nSaved as $SMIN_YEAR-$SMAX_YEAR.lst\n"
-                read -rp "Press Enter to go back." KEY
-                options
+        FDATE_IS_VALID=$(date +%d/%m/%Y -ud $FIRST_DATE >> /dev/null)
+        LDATE_IS_VALID=$(date +%d/%m/%Y -ud $LAST_DATE >> /dev/null)
+        if [[ "$FDATE_IS_VALID" != 0 ]] || [[ "$LDATE_IS_VALID" != 0 ]]; then
+            echo "Invalid dates inserted..."
+            FLAG=1
+        else
+            DATE_DIFF=$(echo $(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 )))
+            if [[ "$DATE_DIFF" -gt 0 ]]; then
+                FLAG=0
+                break
             else
-                read -rp "Something went wrong, check output." KEY
-                options
+                echo "Last date is more recent than first..."
+                FLAG=1
             fi
-            ;;
-        [Nn] )
-            options
-            ;;
-        * )
-            echo -ne "\n[n] Cancel [y] Generate "
-            ;;
-    esac
+        fi
+        
+    fi
 done
+
+##Save As
+DATE_LIST=$(seq 1 $DATE_DIFF)
+echo "Please wait... Generating dates."
+NAME_F=$(awk -F '-' '{print $1}' <<< $FIRST_DATE)
+NAME_L=$(awk -F '-' '{print $1}' <<< $LAST_DATE)
+
+for i in $DATE_LIST
+do
+    date -d "$FIRST_DATE $i days" +%d%m%Y >> "$NAME_F-$NAME_L".lst
+done
+echo -ne "\nDates generated succesfully\nSaved as $NAME_F-$NAME_L.lst"
 }
 function generate_wordlists {
 clear
@@ -327,7 +189,6 @@ do
             if [[ -z "$CRUNCH" ]]; then
                 echo -ne "\nCrunch is not installed. Install it and try again."
                 read -rp "Press Enter to go back..." KEY
-                unset CRUNCH
                 options
             fi
             phones_wl
@@ -529,7 +390,6 @@ do
                         echo
                         read -rp "Press Enter to go back " KEY
                         options
-                        break
                         ;;
                     * )
                         echo -ne "\n$CONNECT"
@@ -749,7 +609,6 @@ done
 }
 function wep_attacks {
 clear
-unset CHANFLAG
 PROMPT="Select : "
 echo "-------------- Select Attack Method --------------"
 echo -ne "\nYou picked ($AP)\n\nAP Name       : $ESSID\nAP Channel    : $CHAN\nAP MAC        : $BSSID\nAP Signal     : $SIG/100\n\n1) ARP Replay Attack\n2) Fragmentation Attack\n\ns) Select different AP\nc) Cancel\n\n$PROMPT"
