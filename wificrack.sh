@@ -128,7 +128,6 @@ fi
 function dates_wl {
 clear
 echo -ne "--------------------- Date Generator ---------------------\n\nEnter dates in the following format\n\nFirst date: YYYY-MM-DD  -  Last date: YYYY-MM-DD\n\n             ex. 1991-5-6 <-> 2016-12-3\n\n"
-
 FLAG=1
 while [[ "$FLAG" != 0 ]]; do
     read -rp "Enter first date: " FIRST_DATE
@@ -137,17 +136,19 @@ while [[ "$FLAG" != 0 ]]; do
         FIRST_DATE="1940-1-1"
         LAST_DATE="2017-12-31"
         echo -ne "\nUsing default dates 1940-1-1 <-> 2017-12-31\n\n"
-        DATE_DIFF=$(echo $(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 )))
+        DATE_DIFF=$(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 ))
         FLAG=0
         break
     else
-        FDATE_IS_VALID=$(date +%d/%m/%Y -ud $FIRST_DATE >> /dev/null)
-        LDATE_IS_VALID=$(date +%d/%m/%Y -ud $LAST_DATE >> /dev/null)
+        date +%d/%m/%Y -ud "$FIRST_DATE" >> /dev/null
+        FDATE_IS_VALID="$?"
+        date +%d/%m/%Y -ud "$LAST_DATE" >> /dev/null
+        LDATE_IS_VALID="$?"
         if [[ "$FDATE_IS_VALID" != 0 ]] || [[ "$LDATE_IS_VALID" != 0 ]]; then
             echo "Invalid dates inserted..."
             FLAG=1
         else
-            DATE_DIFF=$(echo $(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 )))
+            DATE_DIFF=$(( ( $(date -ud $LAST_DATE +'%s') - $(date -ud $FIRST_DATE +'%s') )/60/60/24 ))
             if [[ "$DATE_DIFF" -gt 0 ]]; then
                 FLAG=0
                 break
@@ -156,16 +157,13 @@ while [[ "$FLAG" != 0 ]]; do
                 FLAG=1
             fi
         fi
-        
     fi
 done
-
 ##Save As
-DATE_LIST=$(seq 1 $DATE_DIFF)
+DATE_LIST=$(seq 1 "$DATE_DIFF")
 echo "Please wait... Generating dates."
 NAME_F=$(awk -F '-' '{print $1}' <<< $FIRST_DATE)
 NAME_L=$(awk -F '-' '{print $1}' <<< $LAST_DATE)
-
 for i in $DATE_LIST
 do
     date -d "$FIRST_DATE $i days" +%d%m%Y >> "$NAME_F-$NAME_L".lst
