@@ -362,7 +362,7 @@ AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
 CNT="Are any clients connected ? [yn] "
 echo -ne "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
-You capture a 4-Way Handshake by forcing an already connected client to de-auth, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n$CNT"
+You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n$CNT"
 while read -rn1 YESNO
 do
     case "$YESNO" in
