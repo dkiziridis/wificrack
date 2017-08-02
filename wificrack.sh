@@ -862,9 +862,13 @@ do
             break
             ;;
         c )
-            list_ifaces
-            options
-            break
+            if [[ "$IFACENUM" -gt 1 ]]; then
+                list_ifaces
+                options
+                break
+            else
+                echo -ne "\n$PROMPT"
+            fi
             ;;
         q )
             clear
