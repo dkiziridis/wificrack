@@ -99,10 +99,72 @@ fi
 }
 function phones_wl {
 clear
-echo -ne "------- Phone number generator, using crunch. -------\n\n"
-read -rp "Enter Phone Number digit length : " LENGTH
-read -rp "Enter Phone prefix : " PREFIX
-read -rp "Enter number of recurring digits (Press Enter to skip) : " RECURRING
+echo -ne "------- Phone number generator, using crunch. -------\n\n[c] to Cancel at any time\n\n"
+
+while read -rn2 -p "Phone Number length : " LENGTH
+do
+    case "$LENGTH" in
+        1[0-9] )
+            break
+            ;;
+        [Cc] )
+            generate_wordlists
+            ;;
+        * )
+            echo -ne "\nInvalid length $LENGTH : \n"
+            ;;
+    esac
+done
+echo
+while read -rp "Enter Phone prefix : " PREFIX 
+do
+    case "$PREFIX" in
+        [0-9][0-9][0-9][0-9][0-9][0-9][0-9] )
+            break
+            ;;
+        [0-9][0-9][0-9][0-9][0-9][0-9] )
+            break
+            ;;
+        [0-9][0-9][0-9][0-9][0-9] )
+            break
+            ;;
+        [0-9][0-9][0-9][0-9] )
+            break
+            ;;
+        [0-9][0-9][0-9] )
+            break
+            ;;
+        [0-9][0-9] )
+            break
+            ;;
+        [0-9] )
+            break
+            ;;
+        [Cc] )
+            generate_wordlists
+            ;;
+        * )
+            echo -ne "\nInvalid prefix $PREFIX : \n" 
+    esac
+done
+echo
+while read -rn1 -p "Enter number of recurring digits (Press Enter to skip) : " RECURRING
+do
+    case "$RECURRING" in
+        [2-9] )
+            break
+            ;;
+        "" )
+            break
+            ;;
+        [Cc] )
+            generate_wordlists
+            ;;
+        * )
+            echo -ne "\nInvalid number $RECURRING : \n" 
+        esac    
+done 
+
 TMP_1=${#PREFIX}
 TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
@@ -285,7 +347,31 @@ fi
 function de-auth {
 echo
 read -rp "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
-read -rp "How many times ? " TIMES
+grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' <<< $CLIENT
+if [[ "$?" != 0 ]]; then
+    echo -ne "\nInvalid MAC! Try again."
+    de-auth
+fi
+while read -rn2 -p "How many times ? [1-99] : " TIMES
+do
+    case "$TIMES" in
+        [1-9][0-9] )
+            break
+            ;;
+        1[0-9] )
+            break
+            ;;
+        [1-9] )
+            break
+            ;;
+        [0-9][1-9] )
+            break
+            ;;
+        * )
+            echo -ne "\nInvalid value\n"
+            ;;
+    esac
+done
 aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
 }
 function wpa_attacks {
@@ -636,12 +722,9 @@ if [[ -z "$STATE" ]]; then
                 unset LIST
                 set_mon
             else
-                echo
-                echo "Either set a valid channel or press Enter to skip"
                 unset REPLY
                 unset ASK
                 unset LIST
-                sleep 3
                 options
             fi
         fi
