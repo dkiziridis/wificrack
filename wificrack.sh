@@ -82,19 +82,27 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             exit 1
     esac
 
-    read -rp "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system, install now [yn] ? " DYN
-    if [[ "$DYN" = [Yy] ]]; then
-        $INSTALL $AIRCRACK $NMCLI $MACCHANGER $XTERM
-        SUCCESS="$?"
-        if [[ "$SUCCESS" != 0 ]]; then
-            echo -ne "\nSomething went wrong...\n\n-->$AIRCRACK$NMCLI$MACCHANGER$XTERM failed to install."
-            exit 1
-        fi
-    else
-        clear
-        echo "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system."
-        exit 1
-    fi
+    while read -rn1 -p "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system, install now [yn] ? " DYN
+    do
+        case "$DYN" in
+            [Yy] )
+                echo
+                $INSTALL $AIRCRACK $NMCLI $MACCHANGER $XTERM
+                SUCCESS="$?"
+                if [[ "$SUCCESS" != 0 ]]; then
+                    echo -ne "\nSomething went wrong...\n\n-->$AIRCRACK$NMCLI$MACCHANGER$XTERM failed to install."
+                    exit 1
+                fi
+                break
+                ;;
+            [Nn] )
+                break
+                ;;
+            * )
+                echo
+                ;;
+        esac
+    done
 fi
 }
 function phones_wl {
@@ -176,8 +184,7 @@ else
 fi
 GEN="$?"
 if [[ "$GEN" -eq 0 ]]; then
-    echo "
-    Wordlist successfully generated."
+    echo -ne "Wordlist successfully generated.\n"
     read -rp "Press Enter to go back..."
     options
 else
@@ -527,8 +534,7 @@ if [[ "$PRGA" = 0 ]]; then
     env -u SESSION_MANAGER xterm -hold -e "$CAPTURE" &
     echo y | aireplay-ng -2 -r "$ESSID".arp "$IFACE" &>/dev/null &
     clear
-    echo -ne "\nCrack $ESSID now [yn] ? "
-    while read -rn1 ANSWER
+    while read -rn1 -p "Crack $ESSID now [yn] ? " ANSWER
     do
         case "$ANSWER" in
             [Yy] )
@@ -559,7 +565,7 @@ if [[ "$PRGA" = 0 ]]; then
                 options
                 ;;
             * )
-                echo -ne "\nInvalid choice, enter y or n "
+                echo
                 ;;
         esac
     done
@@ -604,8 +610,8 @@ if [[ "$SUCCESS" != 0 ]]; then
     read -rp "Press Enter to go back"
     options
 fi
-echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed...\nProceed ? [yn] "
-while read -rn1 ANS
+echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed...\n"
+while read -rn1 -p "Proceed ? [yn] " ANS
 do
     case "$ANS" in
         [Yy] )
@@ -620,6 +626,7 @@ do
             clean_up
             read -rp "Press Enter to go back"
             options
+            break
             ;;
         [Nn] )
             kill "$(pgrep aireplay-ng)"
@@ -627,9 +634,10 @@ do
             clean_up
             read -rp "Press Enter to exit and go back. "
             options
+            break
             ;;
         * )
-            echo -ne "\nInvalid answer, enter y or n "
+            echo
             ;;
     esac
 done
@@ -787,7 +795,7 @@ echo "WLAN Interface : $IFACE                MAC : $MAC"
 if [[ "$MM" = "ON" ]]; then
     echo "Monitor Mode   : >> $MM <<"
 else
-    echo "Monitor Mode   : $MM"  
+    echo "Monitor Mode   : $MM"
 fi
 echo
 echo "1) Crack"
@@ -814,7 +822,7 @@ select CHOICE in "${IFACES[@]}"; do
     [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
     break
 done
-IFACE=$(echo "$CHOICE" | awk -F ' ' '{print $2}')
+IFACE=$(awk -F ' ' '{print $2}' <<< "$CHOICE")
 }
 function options {
 STATE=$(iw "$IFACE" info | grep monitor)
