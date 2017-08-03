@@ -171,14 +171,14 @@ do
             echo -ne "\nInvalid number $RECURRING : \n"
         esac
 done
-TMP_1=${#PREFIX}
-TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
-TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
-TMP_4=$(sed 's/%/X/g' <<< "$TMP_3")
+PREFIX_LENGTH=${#PREFIX}
+SUFFIX_LENGTH=$(("$LENGTH" - "$PREFIX_LENGTH" + 1))
+SUFFIX=$(seq -s% "$SUFFIX_LENGTH" | tr -d '[:digit:]')
+SUFFIX_X=$(sed 's/%/X/g' <<< "$SUFFIX")
 if [[ -z "$RECURRING" ]]; then
-    crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4".lst
+    crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$SUFFIX" -o "$PREFIX""$SUFFIX_X".lst
 else
-    crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4".lst
+    crunch "$LENGTH" "$LENGTH" -d "$RECURRING" -t "$PREFIX""$SUFFIX" -o "$PREFIX""$SUFFIX_X".lst
 fi
 GEN="$?"
 if [[ "$GEN" -eq 0 ]]; then
