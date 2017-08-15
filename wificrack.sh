@@ -117,6 +117,7 @@ do
             ;;
         [Cc] )
             generate_wordlists
+            break
             ;;
         * )
             echo -ne "\nInvalid length $LENGTH : \n"
@@ -150,6 +151,7 @@ do
             ;;
         [Cc] )
             generate_wordlists
+            break
             ;;
         * )
             echo -ne "\nInvalid prefix $PREFIX\n"
@@ -168,6 +170,7 @@ do
             ;;
         [Cc] )
             generate_wordlists
+            break
             ;;
         * )
             echo -ne "\nInvalid number $RECURRING : \n"
@@ -460,7 +463,6 @@ do
             break
             ;;
         [Nn] )
-            :
             break
             ;;
         * )
@@ -535,6 +537,7 @@ if [[ "$PRGA" = 0 ]]; then
                 killall xterm
                 clean_up
                 options
+                break
                 ;;
             [Nn] )
                 kill "$(pgrep aireplay-ng)"
@@ -542,6 +545,7 @@ if [[ "$PRGA" = 0 ]]; then
                 clean_up
                 read -rp "Press Enter to go back"
                 options
+                break
                 ;;
             * )
                 ;;
@@ -570,7 +574,7 @@ until [[ "$COUNTER" -eq 3 ]]; do
     let COUNTER+=1
     echo "Attempting to Associate to $ESSID... $COUNTER/3"
     aireplay-ng -1 0 -a "$BSSID" -h "$NEWMAC" "$IFACE"
-    SUCCESS=$?
+    SUCCESS="$?"
     if [[ "$SUCCESS" = 0 ]]; then
         echo -ne "Association successful!\nInitiating ARP Replay attack..."
         aireplay-ng -3 -b "$BSSID" -h "$NEWMAC" "$IFACE" &>/dev/null &
@@ -656,7 +660,7 @@ TXPOWER=$(iw "$IFACE" info | grep txpower | awk -F ' ' '{print $2}{print $3}' | 
 NAME=$(iw "$IFACE" info | grep Interface | awk -F ' ' '{print $2}')
 CHANNEL=$(iw "$IFACE" info | grep channel | awk -F ' ' '{print $2}{print $3}{print $4}' | xargs | sed 's/,//g')
 echo "----------------------- WiFi Card Info -----------------------"
-echo -ne "\nName                          : $NAME\nMAC Addr                      : $ADDR\nType                          : $TYPE\nChannel                       : $CHANNEL\nTransmit Power                : $TXPOWER\n"
+echo -ne "\nName                          : $NAME\nMAC Addr                      : $ADDR\nType                          : $TYPE\nChannel                       : $CHANNEL\nTransmit Power                : $TXPOWER\n\n"
 }
 function unset_mon {
 if [[ -z "$STATE" ]]; then
@@ -673,10 +677,8 @@ else
     ifconfig "$IFACE" up >> /dev/null
     echo "Disabling monitor mode for $IFACE..."
     airmon-ng stop "$IFACE" >> /dev/null
-    echo "$IFACE is no longer in monitor mode."
-    unset STATE
-    sleep 2
     IFACE=$(sed 's/mon//g' <<< "$IFACE")
+    unset STATE
 fi
 }
 function set_mon {
@@ -684,8 +686,7 @@ if [[ -z "$STATE" ]]; then
     LIST="1 2 3 4 5 6 7 8 9 10 11 12 13 14 131 132 132 133 133 134 134 135 136 136 137 137 138 138 36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 136 140 149 153 157 161 165"
     echo -ne "\n\nSetting $IFACE in Monitor Mode...\n\n"
     if [[ "$CHANFLAG" = 1 ]]; then
-        clear
-        echo -ne "Setting $IFACE in Monitor Mode...\n\nYou picked ($AP)\nThe new interface will be set on channel : $CHAN.\n"
+        echo -ne "\n\nSetting $IFACE in Monitor Mode...\n\nYou picked ($AP)\nThe new interface will be set on channel : $CHAN.\n"
         airmon-ng start "$IFACE" "$REPLY" >> /dev/null
     else
         read -rp "Set Channel or (Press Enter to skip) : " REPLY
@@ -720,7 +721,6 @@ if [[ -z "$STATE" ]]; then
     ifconfig "$IFACE" up >> /dev/null
     NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
     STATE=$(iw "$IFACE" info | grep monitor)
-    echo "$IFACE is in monitor mode and it's MAC address is: $NEWMAC"
     unset CHANFLAG
 else
     NEWMAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
@@ -751,13 +751,20 @@ do
     esac
 done
 }
+function list_ifaces {
+clear
+readarray -t IFACES < <(airmon-ng | grep -T phy)
+echo -ne "Select an interface (WLAN Card) and press Enter\n#) PHY  Interface       Driver          Chipset\n\n"
+select CHOICE in "${IFACES[@]}"; do
+    [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
+    break
+done
+IFACE=$(awk -F ' ' '{print $2}' <<< "$CHOICE")
+}
 function menu {
 clear
 STATE=$(iw "$IFACE" info | grep monitor)
 MAC=$(iw "$IFACE" info | grep addr | awk '{print $2}')
-if [[ "$IFACENUM" -gt 1 ]]; then
-    SWITCH="c) Change Interface"
-fi
 if [[ -n "$STATE" ]]; then
     MM=ON
 else
@@ -770,20 +777,10 @@ else
     echo "Monitor Mode   : $MM"
 fi
 echo -ne "\n1) Crack\ne) Enable <M/M>\nd) Disable <M/M>\nw) Generate Wordlists\nh) View Help\nv) View APs\ns) Show Info\n"
-if [[ -n "$SWITCH" ]]; then
-    echo -ne "$SWITCH\n"
+if [[ "$IFACENUM" -gt 1 ]]; then
+    echo -ne "c) Change Interface\n"
 fi
 echo -ne "t) Test Injection\nq) Abort!\n\n"
-}
-function list_ifaces {
-clear
-readarray -t IFACES < <(airmon-ng | grep -T phy)
-echo -ne "Select an interface (WLAN Card) and press Enter\n#) PHY  Interface       Driver          Chipset\n\n"
-select CHOICE in "${IFACES[@]}"; do
-    [[ -n "$CHOICE" ]] || { echo "Invalid choice. Try again." >&2; continue; }
-    break
-done
-IFACE=$(awk -F ' ' '{print $2}' <<< "$CHOICE")
 }
 function options {
 menu
