@@ -296,20 +296,20 @@ else
         _CHAN=$(awk -F ':' '{print $2}' <<< "$CHOICE")
         _ESSID=$(awk -F ':' '{print $NF}' <<< "$CHOICE")
         _SIG=$(awk -F ':' '{print $1}' <<< "$CHOICE")
-        printf "\n%2d)  <%2d> [$_BSSID] $1    %3d    ($_ESSID)" "$COUNTER" "$_CHAN" "$_SIG"
         let COUNTER+=1
+        printf "\n%2d)  <%2d> [$_BSSID] $1    %3d    ($_ESSID)" "$COUNTER" "$_CHAN" "$_SIG"
     done
     echo
-    let COUNTER-=1
     while read -rn2 -p $'\nSelect AP : ' SEL
     do
         case $SEL in
-            [0-$COUNTER] )
+            [1-$COUNTER] )
+                let SEL-=1
                 AP=${LINES[$SEL]}
+                echo "$AP"
                 break
                 ;;
             "" )
-                unset LINES
                 list_APs "$1"
                 break
                 ;;
