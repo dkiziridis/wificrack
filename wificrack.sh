@@ -664,7 +664,6 @@ if [[ -z "$STATE" ]]; then
     LIST="1 2 3 4 5 6 7 8 9 10 11 12 13 14 131 132 132 133 133 134 135 136 137 138 36 40 44 48 52 56 60 64 100 104 108 112 116 120 124 128 132 140 149 153 157 161 165"
     echo -ne "\n\nSetting $IFACE in Monitor Mode...\n\n"
     if [[ -n "$1" ]]; then
-        echo -ne "\n\nSetting $IFACE in Monitor Mode...\n\nYou picked ($AP)\nThe new interface will be set on channel : $CHAN.\n"
         airmon-ng start "$IFACE" "$1" >> /dev/null
     else
         read -rp "Set Channel or (Press Enter to skip) : " REPLY
